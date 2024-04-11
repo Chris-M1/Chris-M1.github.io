@@ -6,7 +6,7 @@ package game;
 
 /**
  *
- * @author milas
+ * @author chris
  */
 class Blind {
     private final int smallBlindAmount;
