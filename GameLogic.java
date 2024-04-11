@@ -79,6 +79,7 @@ public class GameLogic {
                 
                 String name = parts[0];
                 int balance = Integer.parseInt(parts[1]);
+                System.out.println(balance);
                 Player player = new Player(name, balance);
                 players.add(player);
             }
@@ -90,21 +91,6 @@ public class GameLogic {
         } catch (Exception e) {
             System.out.println("An error occurred while loading saved player data: " + e.getMessage());
             players.clear(); // Clear potentially partially loaded data
-        }
-    }
-    
-    public void loadGameState() {
-        try (BufferedReader reader = new BufferedReader(new FileReader("gameState.txt"))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] data = line.split(",");
-                Player player = new Player(data[0], Integer.parseInt(data[1]));
-                // Assuming the first two elements are the player's name and balance, and the rest are cards
-                player.setCards(Arrays.asList(Arrays.copyOfRange(data, 2, data.length)));
-                players.add(player);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
@@ -123,27 +109,58 @@ public class GameLogic {
 
     private void initializeGame() {
     loadPlayerWallets(); // Attempt to load saved player data
-    
-    if (players.isEmpty()) {
-        // Only ask for new player data if loading didn't happen
-        int numPlayers = readIntInput("Enter number of players (1-10):", 1, 10);
-        for (int i = 0; i < numPlayers; i++) {
-            System.out.println("Enter name for Player " + (i + 1) + ":");
-            String playerName = scanner.nextLine();
-            int buyInAmount = readIntInput("Enter buy-in amount for " + playerName + ":", 1, Integer.MAX_VALUE);
-            Player player = new Player(playerName, buyInAmount);
-            players.add(player);
+
+    if (!players.isEmpty()) {
+        System.out.println("Loaded saved player data. Select option for each player:");
+        Iterator<Player> iterator = players.iterator();
+        while (iterator.hasNext()) {
+            Player player = iterator.next();
+            System.out.println("Play using: \nName:" + player.getName() +"\nBalance: "  + "? (yes/no)");
+            String response = scanner.nextLine().trim().toLowerCase();
+            if (!response.equals("yes")) {
+                iterator.remove(); // Remove the player if not keeping
+            }
         }
+
+        System.out.println("Do you want to add new players? (yes/no)");
+        String addNewPlayersResponse = scanner.nextLine().trim().toLowerCase();
+        if (addNewPlayersResponse.equals("yes")) {
+            promptForNewPlayers();
+        }
+    } else {
+        promptForNewPlayers();
     }
-        savePlayerWallets();
-        
-        System.out.println("Enter small blind amount:");
-        smallBlind = scanner.nextInt();
-        bigBlind = smallBlind * 2;
-        scanner.nextLine(); // Consume newline
-        // Deduct blinds for the first round
-        deductBlinds();
+    
+    // Prompt for blinds after determining the player setup
+    setupBlinds();
+    // Save the current state including any new players added
+    savePlayerWallets();
+}
+
+private void promptForNewPlayers() {
+    int numPlayers = readIntInput("Enter number of players (1-10):", 1, 10);
+    for (int i = 0; i < numPlayers; i++) {
+        System.out.println("Enter name for Player " + (i + 1) + ":");
+        String playerName = scanner.nextLine().trim();
+        if (playerName.isEmpty()) {
+            System.out.println("Player name cannot be empty. Please try again.");
+            i--; // Ensure a valid name is entered
+            continue;
+        }
+
+        int buyInAmount = readIntInput("Enter buy-in amount for " + playerName + ":", 1, Integer.MAX_VALUE);
+        Player player = new Player(playerName, buyInAmount);
+        players.add(player);
     }
+}
+
+private void setupBlinds() {
+    System.out.println("Enter small blind amount:");
+    smallBlind = readIntInput("", 1, Integer.MAX_VALUE); // Assuming readIntInput handles prompts even if empty
+    bigBlind = smallBlind * 2;
+    // Deduct blinds for the first round
+    deductBlinds();
+}
 
     private int dealerPosition = -1; // Initialize dealer position
 

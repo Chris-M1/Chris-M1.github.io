@@ -57,7 +57,6 @@ public class PokerHandEvaluator {
     }
 
     private static int mapRankToValue(char rank) {
-        System.out.println("23456789TJQKA".indexOf(rank) + 2);
         return "23456789TJQKA".indexOf(rank) + 2;
     }
 

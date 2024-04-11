@@ -10,8 +10,8 @@ import java.util.List;
 public class Player {
 
     private final String name;
-    private static int balance;
-    private static List<String> cards = new ArrayList<>();
+    private int balance;
+    private List<String> cards = new ArrayList<>();
     private boolean folded = false;
 
     public Player(String name, int initialBalance) {
@@ -31,11 +31,11 @@ public class Player {
         return name;
     }
 
-    public static List<String> getCards() {
+    public List<String> getCards() {
         return cards;
     }
 
-    public static int getBalance() {
+    public int getBalance() {
         return balance;
     }
 
