@@ -10,6 +10,7 @@ package game;
  */
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class PokerHand {
     
@@ -34,6 +35,14 @@ public class PokerHand {
         this.cards = cards;
     }
     
+    private static Map<Integer, Long> getFrequencyMap(List<String> cards) {
+        return cards.stream()
+                .collect(Collectors.groupingBy(
+                        PokerHandEvaluator::getCardValue, 
+                        Collectors.counting()));
+    }
+
+    
     public HandRank getRank() {
         return rank;
     }
@@ -52,7 +61,7 @@ public class PokerHand {
         return cardValues;
     }
     
-    public List<Integer> getKickers() {
+    public List<String> getKickers() {
         // This method's implementation heavily depends on how you track the composition of your hand.
         // Here's a conceptual outline for a hand with a pair, needing three kickers:
         List<Integer> kickers = new ArrayList<>();
