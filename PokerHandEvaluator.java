@@ -57,6 +57,7 @@ public class PokerHandEvaluator {
     }
 
     private static int mapRankToValue(char rank) {
+        System.out.println("23456789TJQKA".indexOf(rank) + 2);
         return "23456789TJQKA".indexOf(rank) + 2;
     }
 
@@ -69,44 +70,6 @@ public class PokerHandEvaluator {
     public static char getCardSuit(String card) {
         return card.charAt(1);
     }
-
-    /*     // Map rank character to its value
-    public static int parseRank(String card) {
-    char rankChar = card.charAt(0); // Get the first character of the card string
-    int rankValue;
-
-    if (rankChar >= '2' && rankChar <= '9') {
-        rankValue = rankChar - '0'; // Convert character to integer value
-    } else {
-        // Handle special rank characters (T, J, Q, K, A)
-        switch (rankChar) {
-            case 'T':
-                rankValue = 10;
-                break;
-            case 'J':
-                rankValue = 11;
-                break;
-            case 'Q':
-                rankValue = 12;
-                break;
-            case 'K':
-                rankValue = 13;
-                break;
-            case 'A':
-                rankValue = 14;
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid rank character: " + rankChar);
-        }
-    }
-
-    return rankValue;
-}
-    
-    public static char parseSuit(String card) {
-    return card.charAt(1); // Get the second character of the card string
-}
-     */
     // Example helper method to find the highest card (simplified)
     private static String findHighCard(List<String> cards) {
         // The highest card is the last card in the sorted list

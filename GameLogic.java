@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.File;
 
 public class GameLogic {
 
@@ -25,20 +26,73 @@ public class GameLogic {
         this.scanner = scanner;
     }
 
-    public void saveGameState() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("gameState.txt"))) {
-            for (Player player : players) {
-                writer.write(player.getName() + "," + player.getBalance());
-                for (String card : player.getCards()) {
-                    writer.write("," + card);
-                }
-                writer.newLine();
+    private String readStringInput(String prompt, Set<String> validOptions) {
+        String input = "";
+        do {
+            System.out.println(prompt);
+            input = scanner.nextLine().trim().toLowerCase();
+            if (!validOptions.contains(input)) {
+                System.out.println("Invalid choice. Please try again.");
+                input = ""; // Reset input to trigger re-prompt
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } while (input.isEmpty());
+        return input;
     }
 
+    private int readIntInput(String prompt, int min, int max) {
+        int input = 0;
+        boolean isValid = false;
+        while (!isValid) {
+            System.out.println(prompt);
+            if (scanner.hasNextInt()) {
+                input = scanner.nextInt();
+                if (input >= min && input <= max) {
+                    isValid = true;
+                } else {
+                    System.out.println("Input must be between " + min + " and " + max + ".");
+                }
+            } else {
+                System.out.println("Invalid input. Please enter a number.");
+                scanner.next(); // Consume the invalid input
+            }
+        }
+        scanner.nextLine(); // Consume newline left-over
+        return input;
+    }
+
+    public void savePlayerWallets() {
+        PlayerWalletWriter.writeToFile(players); // Save player information to file
+    }
+
+    private void loadPlayerWallets() {
+        File file = new File(PlayerWalletWriter.getFilePath());
+        if (!file.exists() || file.length() == 0) {
+            System.out.println("No saved player data found. Starting a new game.");
+            return; // No saved data, so just return
+        }
+        
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length < 2) continue; // Invalid line format
+                
+                String name = parts[0];
+                int balance = Integer.parseInt(parts[1]);
+                Player player = new Player(name, balance);
+                players.add(player);
+            }
+            if (players.isEmpty()) {
+                System.out.println("Saved player data found but no valid players were loaded. Starting a new game.");
+            } else {
+                System.out.println("Loaded saved player data successfully.");
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred while loading saved player data: " + e.getMessage());
+            players.clear(); // Clear potentially partially loaded data
+        }
+    }
+    
     public void loadGameState() {
         try (BufferedReader reader = new BufferedReader(new FileReader("gameState.txt"))) {
             String line;
@@ -68,29 +122,46 @@ public class GameLogic {
     }
 
     private void initializeGame() {
-        System.out.println("Enter number of players (1-10):");
-        int numPlayers = scanner.nextInt();
-        scanner.nextLine(); // Consume newline
-
+    loadPlayerWallets(); // Attempt to load saved player data
+    
+    if (players.isEmpty()) {
+        // Only ask for new player data if loading didn't happen
+        int numPlayers = readIntInput("Enter number of players (1-10):", 1, 10);
         for (int i = 0; i < numPlayers; i++) {
             System.out.println("Enter name for Player " + (i + 1) + ":");
             String playerName = scanner.nextLine();
-            System.out.println("Enter buy-in amount for " + playerName + ":");
-            int buyInAmount = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
+            int buyInAmount = readIntInput("Enter buy-in amount for " + playerName + ":", 1, Integer.MAX_VALUE);
             Player player = new Player(playerName, buyInAmount);
             players.add(player);
         }
-
-        System.out.println("Enter small blind:");
+    }
+        savePlayerWallets();
+        
+        System.out.println("Enter small blind amount:");
         smallBlind = scanner.nextInt();
-        bigBlind = 2 * smallBlind;
+        bigBlind = smallBlind * 2;
         scanner.nextLine(); // Consume newline
+        // Deduct blinds for the first round
+        deductBlinds();
+    }
 
-        // Add total buy-in amount to the initial pot
-        for (Player player : players) {
-            potAmount += player.getBalance();
-        }
+    private int dealerPosition = -1; // Initialize dealer position
+
+    private void deductBlinds() {
+        dealerPosition = (dealerPosition + 1) % players.size(); // Move dealer button
+        int smallBlindPosition = (dealerPosition + 1) % players.size();
+        int bigBlindPosition = (dealerPosition + 2) % players.size();
+
+        Player smallBlindPlayer = players.get(smallBlindPosition);
+        Player bigBlindPlayer = players.get(bigBlindPosition);
+
+        // Deduct small and big blinds from players and add to pot
+        smallBlindPlayer.deductBalance(smallBlind);
+        bigBlindPlayer.deductBalance(bigBlind);
+        potAmount += smallBlind + bigBlind;
+
+        System.out.println(smallBlindPlayer.getName() + " posts small blind of $" + smallBlind);
+        System.out.println(bigBlindPlayer.getName() + " posts big blind of $" + bigBlind);
     }
 
     private void dealHands() {
@@ -181,6 +252,7 @@ public class GameLogic {
 
     private void showdown() {
         System.out.println("\n*** SHOWDOWN ***");
+        System.out.println("Community Cards: " + communityCards);
         for (Player player : players) {
             System.out.println(player.getName() + "'s Hand: " + player.getCards());
         }
@@ -191,21 +263,23 @@ public class GameLogic {
         PokerHand bestHand = null;
 
         for (Player player : players) {
-            // Assuming evaluateBestHand properly creates a PokerHand object
-            PokerHand playerBestHand = evaluateBestHand(player, communityCards);
+            // Correctly pass the player's hand and community cards to evaluateBestHand
+            PokerHand playerBestHand = PokerHandEvaluator.evaluateBestHand(player.getCards(), communityCards);
             if (bestHand == null) {
                 bestHand = playerBestHand;
                 winners.add(player);
             } else {
                 int comparison = HandComparison.compareHands(playerBestHand, bestHand);
                 if (comparison > 0) {
+                    // This player has the best hand so far, so clear the winners list and add this player
                     winners.clear();
                     winners.add(player);
                     bestHand = playerBestHand;
                 } else if (comparison == 0) {
-                    winners.add(player); // Tie condition
+                    // This player's hand ties with the best hand, so add this player to the winners list
+                    winners.add(player);
                 }
-                // If comparison < 0, current hand is not better; do nothing
+                // If comparison < 0, the current player's hand is not better than the best hand found so far
             }
         }
 
@@ -221,87 +295,5 @@ public class GameLogic {
         for (Player winner : winners) {
             System.out.println(winner.getName() + " with a hand of " + bestHand.getRank());
         }
-    }
-
-    private PokerHand evaluateBestHand(Player player, List<String> communityCards) {
-        // Placeholder logic for evaluating the player's best hand
-        // This should be replaced with actual poker hand evaluation logic
-
-        // Example: Assume we're evaluating to find a High Card for simplification
-        List<String> allCards = new ArrayList<>(player.getCards());
-        allCards.addAll(communityCards);
-        Collections.sort(allCards); // Assume this sorts in poker value order
-
-        // For demonstration, assume the last card is the highest (which may not always be the case)
-        String highCard = allCards.get(allCards.size() - 1);
-
-        // Return a PokerHand object representing a High Card hand
-        // In a full implementation, you would determine the actual best hand (e.g., pair, two pair, etc.)
-        return new PokerHand(PokerHand.HandRank.HIGH_CARD, Collections.singletonList(highCard));
-    }
-
-    public int compareHandRanks(PokerHand hand1, PokerHand hand2) {
-        return hand1.getRank().compareTo(hand2.getRank());
-    }
-
-    public int compareHands(PokerHand hand1, PokerHand hand2) {
-        int rankComparison = compareHandRanks(hand1, hand2);
-        if (rankComparison != 0) {
-            return rankComparison;
-        }
-
-        // Assuming both hands have the same rank at this point
-        switch (hand1.getRank()) {
-            case ROYAL_FLUSH: // No further comparison needed; all royal flushes are equal
-                return 0;
-            case STRAIGHT_FLUSH:
-            case FLUSH:
-            case STRAIGHT:
-            case HIGH_CARD:
-                return compareHighCards(hand1.getCardValues(), hand2.getCardValues());
-            case FOUR_OF_A_KIND:
-            case FULL_HOUSE:
-            case THREE_OF_A_KIND:
-            case TWO_PAIR:
-            case ONE_PAIR:
-                return compareMultiples(hand1, hand2);
-            default:
-                throw new IllegalArgumentException("Unknown hand rank: " + hand1.getRank());
-        }
-    }
-
-    private int compareMultiples(PokerHand hand1, PokerHand hand2) {
-        // This is conceptual; actual implementation depends on how you're representing the hand and its multiples
-        int multipleComparison = compareHighCards(hand1.getMultipleRanks(), hand2.getMultipleRanks());
-        if (multipleComparison != 0) {
-            return multipleComparison;
-        }
-
-        // Compare kickers if the multiples are the same
-        return compareHighCards(hand1.getKickers(), hand2.getKickers());
-    }
-
-    public int compareHighCards(List<Integer> cards1, List<Integer> cards2) {
-        // This method should compare the cards from highest to lowest
-        // Assuming cards are sorted, compare from the end of the list
-        // You need to parse card values, handle Aces, and so on
-        for (int i = cards1.size() - 1; i >= 0; i--) {
-            int comparisonResult = compareSingleCard(cards1.get(i), cards2.get(i));
-            if (comparisonResult != 0) {
-                return comparisonResult;
-            }
-        }
-        return 0; // If all cards are equal
-    }
-
-    public int compareSingleCard(Integer cardValue1, Integer cardValue2) {
-        return cardValue1.compareTo(cardValue2);
-    }
-
-    private int mapCardToValue(String card) {
-        // Map card strings to their numerical values for comparison
-        // "Ace" might be high or low depending on the context (e.g., in a straight)
-        // This is a placeholder; actual implementation depends on how cards are represented
-        return 0;
     }
 }

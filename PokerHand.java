@@ -63,6 +63,7 @@ public class PokerHand {
                 .sorted(Collections.reverseOrder())
                 .collect(Collectors.toList());
     }
+     
      public List<Integer> getKickers() {
         Map<Integer, Long> frequencyMap = this.cards.stream()
                 .collect(Collectors.groupingBy(PokerHandEvaluator::getCardValue, Collectors.counting()));

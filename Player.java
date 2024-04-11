@@ -1,29 +1,28 @@
-
 package game;
 
 /**
  *
  * @author milas
  */
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class Player {
+
     private final String name;
-    private int balance;
-    private List<String> cards = new ArrayList<>();
+    private static int balance;
+    private static List<String> cards = new ArrayList<>();
     private boolean folded = false;
 
     public Player(String name, int initialBalance) {
         this.name = name;
         this.balance = initialBalance;
     }
-    
+
     public void setCards(List<String> cards) {
-    this.cards = new ArrayList<>(cards);
-}
-    
+        this.cards = new ArrayList<>(cards);
+    }
+
     public void receiveCard(String card) {
         cards.add(card);
     }
@@ -32,12 +31,16 @@ public class Player {
         return name;
     }
 
-    public List<String> getCards() {
+    public static List<String> getCards() {
         return cards;
     }
 
-    public int getBalance() {
+    public static int getBalance() {
         return balance;
+    }
+
+    public void deductBalance(int amount) {
+        balance -= amount;
     }
 
     public boolean hasFolded() {
@@ -52,8 +55,5 @@ public class Player {
     public String toString() {
         return name + ": ($" + balance + ") " + cards;
     }
+
 }
-
-
-
-
