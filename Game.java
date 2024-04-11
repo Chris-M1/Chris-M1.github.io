@@ -1,0 +1,15 @@
+package game;
+
+import java.util.Scanner;
+
+public class Game {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("TEXAS HOLDEM POKER!\n");
+
+        // Initialize the game
+        GameLogic game = new GameLogic(scanner);
+        game.start();
+    }
+}
+
