@@ -22,7 +22,7 @@ public class HandComparison {
      * @param hand2 The second hand to compare.
      * @return A positive number if hand1 is better, 0 if they are equal, and a negative number if hand2 is better.
      */
-    public int compareHandRanks(PokerHand hand1, PokerHand hand2) {
+    public static int compareHandRanks(PokerHand hand1, PokerHand hand2) {
         return hand1.getRank().compareTo(hand2.getRank());
     }
 
@@ -32,7 +32,7 @@ public class HandComparison {
      * @param cards2 The second list of card values.
      * @return A positive number if cards1 is higher, 0 if they are equal, and a negative number if cards2 is higher.
      */
-    public int compareHighCards(List<Integer> cards1, List<Integer> cards2) {
+    public static int compareHighCards(List<Integer> cards1, List<Integer> cards2) {
         for (int i = 0; i < cards1.size(); i++) {
             int comparisonResult = cards1.get(i).compareTo(cards2.get(i));
             if (comparisonResult != 0) {
@@ -48,9 +48,9 @@ public class HandComparison {
      * @param hand2 The second hand.
      * @return A positive number if hand1 is better, 0 if they are equal, and a negative number if hand2 is better.
      */
-    public int compareMultiplesAndKickers(PokerHand hand1, PokerHand hand2) {
-        Map<Integer, Integer> multiplesHand1 = hand1.getMultiples();
-        Map<Integer, Integer> multiplesHand2 = hand2.getMultiples();
+    public static int compareMultiplesAndKickers(PokerHand hand1, PokerHand hand2) {
+        Map<Integer, Long> multiplesHand1 = hand1.getMultiples();
+        Map<Integer, Long> multiplesHand2 = hand2.getMultiples();
 
         int multipleComparison = compareHighCards(hand1.getMultipleRanks(), hand2.getMultipleRanks());
         if (multipleComparison != 0) return multipleComparison;
@@ -65,7 +65,7 @@ public class HandComparison {
      * @param hand2 The second PokerHand.
      * @return An integer indicating the comparison result.
      */
-    public int compareHands(PokerHand hand1, PokerHand hand2) {
+    public static int compareHands(PokerHand hand1, PokerHand hand2) {
         int rankComparison = compareHandRanks(hand1, hand2);
         if (rankComparison != 0) return rankComparison;
 
