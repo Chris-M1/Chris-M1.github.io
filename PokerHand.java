@@ -35,14 +35,6 @@ public class PokerHand {
         this.cards = cards;
     }
     
-    private static Map<Integer, Long> getFrequencyMap(List<String> cards) {
-        return cards.stream()
-                .collect(Collectors.groupingBy(
-                        PokerHandEvaluator::getCardValue, 
-                        Collectors.counting()));
-    }
-
-    
     public HandRank getRank() {
         return rank;
     }
@@ -50,45 +42,40 @@ public class PokerHand {
     public List<String> getCards() {
         return cards;
     }
-
+    
     public List<Integer> getCardValues() {
-        List<Integer> cardValues = new ArrayList<>();
-        for (String card : this.cards) { // Assuming `this.cards` holds your hand's cards as strings
-            int value = PokerHandEvaluator.parseRank(card); // Assuming a method to map rank char to its value
-            cardValues.add(value);
-        }
-        Collections.sort(cardValues, Collections.reverseOrder()); // Sort in descending order for convenience
-        return cardValues;
+        return cards.stream()
+                .map(card -> PokerHandEvaluator.getCardValue(card))
+                .collect(Collectors.toList());
+    }
+
+    public Map<Integer, Long> getMultiples() {
+        Map<Integer, Long> frequencyMap = this.cards.stream()
+                .collect(Collectors.groupingBy(PokerHandEvaluator::getCardValue, Collectors.counting()));
+        return frequencyMap.entrySet().stream()
+                .filter(entry -> entry.getValue() > 1)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
     
-    public List<String> getKickers() {
-        // This method's implementation heavily depends on how you track the composition of your hand.
-        // Here's a conceptual outline for a hand with a pair, needing three kickers:
-        List<Integer> kickers = new ArrayList<>();
-        Map<Integer, Integer> frequencyMap = getFrequencyMap(); // A method to get the frequency of each card value in the hand
+     public List<Integer> getMultipleRanks() {
+        return getMultiples().entrySet().stream()
+                .map(Map.Entry::getKey)
+                .sorted(Collections.reverseOrder())
+                .collect(Collectors.toList());
+    }
+     public List<Integer> getKickers() {
+        Map<Integer, Long> frequencyMap = this.cards.stream()
+                .collect(Collectors.groupingBy(PokerHandEvaluator::getCardValue, Collectors.counting()));
 
-        for (Map.Entry<Integer, Integer> entry : frequencyMap.entrySet()) {
-            if (entry.getValue() == 1) { // Assuming single cards are kickers
-                kickers.add(entry.getKey());
-            }
-     }
+        // Extracting kickers - cards that are not part of multiples
+        List<Integer> kickers = frequencyMap.entrySet().stream()
+                .filter(entry -> entry.getValue() == 1)
+                .map(Map.Entry::getKey)
+                .sorted(Collections.reverseOrder())
+                .collect(Collectors.toList());
 
-        Collections.sort(kickers, Collections.reverseOrder()); // Sort in descending order for convenience
-        return kickers.size() > 3 ? kickers.subList(0, 3) : kickers; // Assuming we need the top 3 kickers
-}
-    public Map<Integer, Integer> getMultiples() {
-    // Returns a map with card values as keys and their counts as values, filtered to only include multiples
-        Map<Integer, Integer> multiples = new HashMap<>();
-        Map<Integer, Integer> frequencyMap = getFrequencyMap(); // A method to get the frequency of each card value in the hand
-
-        for (Map.Entry<Integer, Integer> entry : frequencyMap.entrySet()) {
-            if (entry.getValue() > 1) { // Assuming multiples are cards with a frequency > 1
-              multiples.put(entry.getKey(), entry.getValue());
-            }
-        }
-
-        return multiples;
+        return kickers;
+    }
     }
     // You might need methods to compare cards within the same rank
-}
 

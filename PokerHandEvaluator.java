@@ -61,12 +61,12 @@ public class PokerHandEvaluator {
     }
 
     // Extracts the numerical value of a card's rank.
-    private static int getCardValue(String card) {
+    public static int getCardValue(String card) {
         return mapRankToValue(card.charAt(0));
     }
 
     // Extracts the suit of a card.
-    private static char getCardSuit(String card) {
+    public static char getCardSuit(String card) {
         return card.charAt(1);
     }
 
@@ -147,7 +147,7 @@ public class PokerHandEvaluator {
         return true;
     }
 
-    private static Map<Integer, Long> getFrequencyMap(List<String> cards) {
+    public static Map<Integer, Long> getFrequencyMap(List<String> cards) {
         return cards.stream()
                 .collect(Collectors.groupingBy(
                         PokerHandEvaluator::getCardValue,

@@ -278,7 +278,7 @@ public void loadGameState() {
     return compareHighCards(hand1.getKickers(), hand2.getKickers());
 }
     
-    private int compareHighCards(List<String> cards1, List<String> cards2) {
+    public int compareHighCards(List<Integer> cards1, List<Integer> cards2) {
     // This method should compare the cards from highest to lowest
     // Assuming cards are sorted, compare from the end of the list
     // You need to parse card values, handle Aces, and so on
