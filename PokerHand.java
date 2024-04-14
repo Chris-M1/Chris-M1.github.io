@@ -1,4 +1,13 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package game;
+
+/**
+ *
+ * @author chris
+ */
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,13 +45,13 @@ public class PokerHand {
     
     public List<Integer> getCardValues() {
         return cards.stream()
-                .map(card -> HandProfiler.getCardValue(card))
+                .map(card -> PokerHandEvaluator.getCardValue(card))
                 .collect(Collectors.toList());
     }
 
     public Map<Integer, Long> getMultiples() {
         Map<Integer, Long> frequencyMap = this.cards.stream()
-                .collect(Collectors.groupingBy(HandProfiler::getCardValue, Collectors.counting()));
+                .collect(Collectors.groupingBy(PokerHandEvaluator::getCardValue, Collectors.counting()));
         return frequencyMap.entrySet().stream()
                 .filter(entry -> entry.getValue() > 1)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -55,9 +64,9 @@ public class PokerHand {
                 .collect(Collectors.toList());
     }
      
-     public List<Integer> getKickers() {
+     public List<Integer> gKickers() {
         Map<Integer, Long> frequencyMap = this.cards.stream()
-                .collect(Collectors.groupingBy(HandProfiler::getCardValue, Collectors.counting()));
+                .collect(Collectors.groupingBy(PokerHandEvaluator::getCardValue, Collectors.counting()));
 
         // Extracting kickers - cards that are not part of multiples
         List<Integer> kickers = frequencyMap.entrySet().stream()
@@ -68,5 +77,7 @@ public class PokerHand {
 
         return kickers;
     }
+     
     }
-    
+    // You might need methods to compare cards within the same rank
+

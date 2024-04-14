@@ -7,6 +7,7 @@ public class Player {
     private String name;
     private List<String> cards = new ArrayList<>();
     private boolean folded = false;
+    private boolean allIn = false;
 
     public Player(String name) {
         this.name = name;
@@ -39,11 +40,14 @@ public class Player {
     public boolean hasFolded() {
         return folded;
     }
+    public boolean isAllIn() {
+        return allIn;
+    }
+    public void allIn(){
+        allIn = true;
+    }
     @Override
     public String toString() {
         return getName() + " | Cards: " + cards.toString(); // Customize as needed
     }
 }
-
-
-
