@@ -14,14 +14,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.math.BigDecimal;
 
 public class PlayerLoader {
-    private PlayerDAO playerDAO;
-
-    public PlayerLoader() {
-        this.playerDAO = new PlayerDAO();
-    }
-
     public List<PlayerWithWallet> loadPlayersWithWallet() {
         List<PlayerWithWallet> players = new ArrayList<>();
         String sql = "SELECT * FROM Player";
@@ -33,8 +28,8 @@ public class PlayerLoader {
             while (rs.next()) {
                 int id = rs.getInt("id");
                 String name = rs.getString("name");
-                int wallet = rs.getInt("wallet");
-                PlayerWithWallet player = new PlayerWithWallet(name, wallet);
+                BigDecimal wallet = rs.getBigDecimal("wallet");
+                PlayerWithWallet player = new PlayerWithWallet(id, name, wallet.intValue());
                 players.add(player);
             }
         } catch (SQLException e) {

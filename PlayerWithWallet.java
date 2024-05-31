@@ -15,7 +15,12 @@ public class PlayerWithWallet extends Player {
         super(id, name, wallet);
         this.currentBet = 0;
     }
-
+    
+    public PlayerWithWallet(String name, int wallet) {
+        super(name, wallet);
+        this.currentBet = 0;
+    }
+    
     public void setWallet(int amount) {
         this.wallet = amount;
     }

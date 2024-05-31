@@ -4,18 +4,16 @@ package game;
  *
  * @author milas
  */
-import java.util.*;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.File;
-import java.util.stream.Collectors;
-import java.sql.SQLException;
+import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Scanner;
-
+import java.util.stream.Collectors;
 
 public class GameLogic {
 
@@ -28,14 +26,14 @@ public class GameLogic {
     private final Deck deck = new Deck();
     private PlayerDAO playerDAO;
     private PlayerLoader playerLoader;
-    private List<Player> players;
-
+    private List<PlayerWithWallet> players;
+    
     public GameLogic(Scanner scanner) {
         DatabaseUtil.initializeDatabase();
         this.scanner = scanner;
         this.playerDAO = new PlayerDAO();
         this.playerLoader = new PlayerLoader();
-        this.players = loadPlayerWallets();
+        this.players = new ArrayList<>();
         addShutdownHook();
     }
 
@@ -69,59 +67,40 @@ public class GameLogic {
     }
 
     private void initializeGame() {
-        loadPlayerWallets(); // Load player data
-
-        if (!players.isEmpty()) {
-            System.out.println("Loaded saved player data. Select option for each player:");
-            Iterator<PlayerWithWallet> it = players.iterator();
-            while (it.hasNext()) {
-                PlayerWithWallet pl = it.next();
-                boolean valid = false;
-                while (!valid) {  // Corrected condition to use '!'
-                    System.out.println("Play using: \nName: " + pl.getName() + "\nBalance: " + pl.getWallet() + "? (y/n)");
-                    String resp = scanner.nextLine().trim().toLowerCase();
-                    switch (resp) {
-                        case "no", "n":
-                            it.remove(); // Remove unselected players
-                            valid = true;
-                            break;
-                        case "yes", "y":
-                            valid = true;
-                            break;
-                        default:
-                            System.out.println("Invalid input. Please enter (y/n).");
-                            break;
-                    }
-                }
-            }
-
-            System.out.println("Do you want to add new players? (y/n)");
-            boolean addPlayers = false;
-            while (!addPlayers) {
-                String addResp = scanner.nextLine().trim().toLowerCase();
-                switch (addResp) {
-                    case "yes", "y":
-                        promptForNewPlayers();
-                        addPlayers = true;
-                        break;
-                    case "no", "n":
-                        addPlayers = true;
-                        break;
-                    default:
-                        System.out.println("Invalid input. Please enter (y/n).");
-                        break;
-                }
-            }
-
-            if (players.size() < 2) {
-                System.out.println("At least two players are needed to start the game.");
-                return; // Exit initialization if not enough players
-            }
-        } else {
-            promptForNewPlayers();
+        players = loadPlayerWallets();
+        
+        // Display loaded players
+        System.out.println("Loaded players: ");
+        for (PlayerWithWallet player : players) {
+            System.out.println("Name: " + player.getName() + ", Wallet: " + player.getWallet());
         }
-        setupBlinds();       // Setup blinds
-        savePlayerWallets(); // Save game state
+
+        // Prompt for new players
+        promptForNewPlayers();
+        
+        // Final list of players
+        System.out.println("Final list of players: ");
+        for (PlayerWithWallet player : players) {
+            System.out.println("Name: " + player.getName() + ", Wallet: " + player.getWallet());
+        }
+    }
+
+    
+    private PlayerWithWallet loadSinglePlayer(String playerName) throws SQLException {
+        String sql = "SELECT * FROM Player WHERE name = ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, playerName);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    int id = rs.getInt("id");
+                    String name = rs.getString("name");
+                    BigDecimal wallet = rs.getBigDecimal("wallet");
+                    return new PlayerWithWallet(id, name, wallet.intValue());
+                }
+            }
+        }
+        throw new SQLException("Player not found");
     }
     
     public void addNewPlayer(Player player) {
@@ -197,34 +176,8 @@ public class GameLogic {
         PlayerWalletWriter.writeToFile(players); // Save player information to file
     }
 
-    private void loadPlayerWallets() {
-        File f = new File(PlayerWalletWriter.getFilePath());
-        if (!f.exists() || f.length() == 0) {
-            System.out.println("No saved player data found. Starting a new game.");
-            return;
-        }
-
-        try (BufferedReader br = new BufferedReader(new FileReader(f))) {
-            String ln;
-            while ((ln = br.readLine()) != null) {
-                String[] parts = ln.split(",");
-                if (parts.length < 2) {
-                    continue; // Skip malformed lines
-                }
-                String nm = parts[0];
-                int bal = Integer.parseInt(parts[1]);
-                PlayerWithWallet pw = new PlayerWithWallet(nm, bal);
-                players.add(pw);
-            }
-            if (players.isEmpty()) {
-                System.out.println("Saved player data found but no valid players were loaded. Starting a new game.");
-            } else {
-                System.out.println("Loaded saved player data successfully.");
-            }
-        } catch (Exception e) {
-            System.out.println("An error occurred while loading saved player data: " + e.getMessage());
-            players.clear(); // Clear any partial data
-        }
+    private List<PlayerWithWallet> loadPlayerWallets() {
+        return playerLoader.loadPlayersWithWallet();
     }
 
     private void setupBlinds() {
