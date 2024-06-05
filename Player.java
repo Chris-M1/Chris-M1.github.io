@@ -6,15 +6,25 @@ package game;
  */
 import java.util.ArrayList;
 import java.util.List;
+import java.math.BigDecimal;
 
 public class Player {
+    private int id;
     private String name;
-    private List<String> cards = new ArrayList<>();
+    private int wallet;
+    public List<String> cards = new ArrayList<>();
     private boolean folded = false;
     private boolean allIn = false;
 
-    public Player(String name) {
+    public Player(String name, int wallet) {
         this.name = name;
+        this.wallet = wallet;
+    }
+    
+    public Player(int id, String name, int wallet) {
+        this.id = id;
+        this.name = name;
+        this.wallet = wallet;
     }
 
     public void receiveCard(String card) {
@@ -33,8 +43,16 @@ public class Player {
         this.cards = new ArrayList<>(newCards);
     }
 
+    public int getId() {
+        return id;
+    }
+
     public String getName() {
         return name;
+    }
+
+    public int getWallet() {
+        return wallet;
     }
 
     public void fold() {
