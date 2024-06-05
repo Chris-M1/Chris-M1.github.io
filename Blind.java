@@ -17,11 +17,11 @@ class Blind {
         this.bigBlindAmount = bigBlindAmount;
     }
 
-    public int getSmallBlindAmount() {
+    public int getSmallBlind() {
         return smallBlindAmount;
     }
 
-    public int getBigBlindAmount() {
+    public int getBigBlind() {
         return bigBlindAmount;
     }
 }

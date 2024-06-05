@@ -77,6 +77,6 @@ public class PokerGameGUI extends JFrame {
         for (PlayerWithWallet player : gameLogic.getPlayers()) {
             displayArea.append("Name: " + player.getName() + ", Wallet: " + player.getWallet() + "\n");
         }
-        gameLogic.startBettingRound(); // Start the betting round
+        gameLogic.BlindSetup(); // Start the betting round
     }
 }

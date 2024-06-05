@@ -19,7 +19,7 @@ public class DatabaseUtil {
 
     static {
         try {
-            Class.forName("org.apache.derby.jdbc.ClientDriver");
+            Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }

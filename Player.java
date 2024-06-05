@@ -20,6 +20,7 @@ public class Player {
         this.name = name;
         this.wallet = wallet;
     }
+   
     
     public Player(int id, String name, int wallet) {
         this.id = id;

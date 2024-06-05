@@ -20,6 +20,8 @@ public class BettingRoundGUI extends JFrame {
     private static JTextArea playerCardsArea;
     private static JTextArea communityCardsArea;
     private JTextField betField;
+    private static JLabel walletLabel;
+    private static JLabel blindsLabel;
     private JButton betButton;
     private JButton checkButton;
     private JButton callButton;
@@ -28,7 +30,8 @@ public class BettingRoundGUI extends JFrame {
     
 
     public BettingRoundGUI(GameLogic gameLogic) {
-        BettingRoundGUI.gameLogic = gameLogic;
+        this.gameLogic = gameLogic;
+        initializeComponents();
 
         setTitle("Poker Betting Round");
         setSize(600, 600);
@@ -87,6 +90,26 @@ public class BettingRoundGUI extends JFrame {
 
         gameLogic.showCurrentPlayerTurn();
     }
+    
+    private void initializeComponents() {
+        blindsLabel = new JLabel();
+        updateBlindsDisplay();
+        add(blindsLabel, BorderLayout.NORTH);
+        // Additional GUI setupdisplayArea = new JTextArea();
+        displayArea = new JTextArea();
+        
+        walletLabel = new JLabel("Wallet: $0");
+        this.add(displayArea, BorderLayout.CENTER);
+        this.add(walletLabel, BorderLayout.SOUTH);
+        this.pack(); // Layout components
+        this.setVisible(true); // Make GUI visible
+        
+    }
+
+    public void updateBlindsDisplay() {
+        blindsLabel.setText("Small Blind: " + gameLogic.getBlinds().getSmallBlind() + 
+                            ", Big Blind: " + gameLogic.getBlinds().getBigBlind());
+    }
 
     private void placeBet() {
         String betText = betField.getText();
@@ -110,10 +133,21 @@ public class BettingRoundGUI extends JFrame {
         displayArea.append("You folded.\n");
     }
 
-    public static void updateCurrentPlayerDisplay(String playerName, List<String> playerCards, List<String> communityCards) {
+    public static void updateCurrentPlayerDisplay(String playerName, List<String> playerCards, List<String> communityCards, int wallet) {
         playerCardsArea.setText(String.join(", ", playerCards));
         communityCardsArea.setText(String.join(", ", communityCards));
-        displayArea.append("It's " + playerName + "'s turn.\n");
+        walletLabel.setText("Wallet: $" + wallet);
+    }
+    
+    public void updatePlayerDisplays(List<PlayerWithWallet> players) {
+        StringBuilder builder = new StringBuilder();
+        for (PlayerWithWallet player : players) {
+            builder.append("Name: ").append(player.getName())
+                   .append(", Wallet: $").append(player.getWallet())
+                   .append(", Cards: ").append(String.join(", ", player.getCards()))
+                   .append("\n");
+        }
+        displayArea.setText(builder.toString());
     }
     
     public void showWinner(String winnerName) {

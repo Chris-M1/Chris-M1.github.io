@@ -13,17 +13,18 @@ public class PlayerWithWallet extends Player {
     private boolean isAI; 
     private List<String> cards;
 
-    public PlayerWithWallet(int id, String name, int wallet, boolean isAI) {
+    public PlayerWithWallet(int id, String name, int wallet) {
         super(id, name, wallet);
-        this.currentBet = 0;
+        this.wallet = wallet;
+        this.currentBet = currentBet;
         this.cards = new ArrayList<>();
         this.isAI = isAI;
         this.cards = new ArrayList<>();
     }
     
-    public PlayerWithWallet(String name, int wallet, boolean isAI) {
+    public PlayerWithWallet(String name, int wallet) {
          super(name, wallet);
-        this.currentBet = 0;
+        this.currentBet = currentBet;
         this.isAI = isAI;
         this.cards = new ArrayList<>();
     }
@@ -36,10 +37,10 @@ public class PlayerWithWallet extends Player {
         this.wallet = amount;
     }
 
-    public void addToWallet(int amount) {
-        this.wallet += amount;
-    }
-
+//    public void addToWallet(int amount) {
+//        this.wallet += amount;
+//    }
+//
      public void deductFromWallet(int amount) {
         if (amount <= this.wallet) {
             this.wallet -= amount;
@@ -72,6 +73,14 @@ public class PlayerWithWallet extends Player {
         this.currentBet = currentBet;
     }
 
+    public void addToWallet(int amount) {
+        this.wallet += amount;
+    }
+
+    public void subtractFromWallet(int amount) {
+        this.wallet -= amount;
+    }
+    
     @Override
     public String toString() {
         return "PlayerWithWallet{" +
