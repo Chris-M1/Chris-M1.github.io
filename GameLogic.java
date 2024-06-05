@@ -27,7 +27,7 @@ public class GameLogic {
     private PlayerDAO playerDAO;
     private PlayerLoader playerLoader;
     private List<PlayerWithWallet> players;
-    private int currentPlayerIndex = 0;
+    private int currentPlayerIndex = 1;
     
     public GameLogic() {
         DatabaseUtil.initializeDatabase(); // Initialize the database
@@ -267,12 +267,12 @@ public class GameLogic {
         return players.stream().allMatch(p -> p.hasFolded() || p.isAllIn());
     }
     
-//    public void startBettingRound() {
-//        javax.swing.SwingUtilities.invokeLater(() -> {
-//            BettingRoundGUI bettingGUI = new BettingRoundGUI(this);
-//            bettingGUI.setVisible(true);
-//        });
-//    }
+    public void startBettingRound() {
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            BettingRoundGUI bettingGUI = new BettingRoundGUI(this);
+            bettingGUI.setVisible(true);
+        });
+    }
     
     public void showCurrentPlayerTurn() {
         PlayerWithWallet currentPlayer = players.get(currentPlayerIndex);
@@ -304,11 +304,6 @@ public class GameLogic {
 
     
     
-    public void startBettingRound() {
-        currentPlayerIndex = 0;
-        showCurrentPlayerTurn();
-    }
-
     public void placeBet(int amount) {
         PlayerWithWallet currentPlayer = players.get(currentPlayerIndex);
         currentPlayer.setCurrentBet(amount);

@@ -22,7 +22,10 @@ public class BettingRoundGUI extends JFrame {
     private JTextField betField;
     private JButton betButton;
     private JButton checkButton;
+    private JButton callButton;
+    private JButton raiseButton;
     private JButton foldButton;
+    
 
     public BettingRoundGUI(GameLogic gameLogic) {
         BettingRoundGUI.gameLogic = gameLogic;
@@ -113,6 +116,5 @@ public class BettingRoundGUI extends JFrame {
         displayArea.append("It's " + playerName + "'s turn.\n");
     }
 }
-
 
 
