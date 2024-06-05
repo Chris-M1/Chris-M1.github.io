@@ -28,7 +28,7 @@ public class PokerHand {
     }
     
     private HandRank rank;
-    private List<String> cards; // Consider using a more sophisticated representation
+    private List<String> cards; 
 
     public PokerHand(HandRank rank, List<String> cards) {
         this.rank = rank;
@@ -79,11 +79,15 @@ public class PokerHand {
     }
      
      @Override
-    public String toString() {
-        return cards.stream()
-                .map(Card::toString)
-                .collect(Collectors.joining(", "));
+public String toString() {
+    // Assuming cards is a List<String> where each string represents a card
+    if (cards != null) {
+        return String.join(", ", cards);
+    } else {
+        return "No cards";
+    }
 }
+
 
      
     }
