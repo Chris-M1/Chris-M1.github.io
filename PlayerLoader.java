@@ -29,7 +29,7 @@ public class PlayerLoader {
                 int id = rs.getInt("id");
                 String name = rs.getString("name");
                 BigDecimal wallet = rs.getBigDecimal("wallet");
-                PlayerWithWallet player = new PlayerWithWallet(id, name, wallet.intValue());
+                PlayerWithWallet player = new PlayerWithWallet(id, name, wallet.intValue(), false);
                 players.add(player);
             }
         } catch (SQLException e) {

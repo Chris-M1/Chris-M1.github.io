@@ -12,7 +12,7 @@ public class Player {
     private int id;
     private String name;
     private int wallet;
-    private List<String> cards = new ArrayList<>();
+    public List<String> cards = new ArrayList<>();
     private boolean folded = false;
     private boolean allIn = false;
 
