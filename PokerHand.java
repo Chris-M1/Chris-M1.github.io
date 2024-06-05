@@ -78,6 +78,13 @@ public class PokerHand {
         return kickers;
     }
      
+     @Override
+    public String toString() {
+        return cards.stream()
+                .map(Card::toString)
+                .collect(Collectors.joining(", "));
+}
+
+     
     }
-    // You might need methods to compare cards within the same rank
 

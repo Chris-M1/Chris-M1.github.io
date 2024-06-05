@@ -9,7 +9,7 @@ public class Deck {
 
     public Deck() {
         cards = new ArrayList<>();
-        String[] suits = {"Hearts", "Diamonds", "Clubs", "Spades"};
+        String[] suits = {"H", "D", "C", "S"};
         String[] ranks = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
 
         for (String suit : suits) {
@@ -18,7 +18,7 @@ public class Deck {
             }
         }
     }
-
+    
     public void shuffle() {
         Collections.shuffle(cards);
     }

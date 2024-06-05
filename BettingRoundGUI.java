@@ -115,6 +115,17 @@ public class BettingRoundGUI extends JFrame {
         communityCardsArea.setText(String.join(", ", communityCards));
         displayArea.append("It's " + playerName + "'s turn.\n");
     }
+    
+    public void showWinner(String winnerName) {
+        JOptionPane.showMessageDialog(this, "The winner is " + winnerName, "Game Over", JOptionPane.INFORMATION_MESSAGE);
+        displayArea.append("The winner is " + winnerName + "\n");
+    }
+    
+   public void displayWinners(String message) {
+    JOptionPane.showMessageDialog(this, message, "Game Over", JOptionPane.INFORMATION_MESSAGE);
+    // Optionally close the window or reset the game
+    this.dispose(); // Closes the betting round window
+}
 }
 
 

@@ -27,7 +27,9 @@ public class GameLogic {
     private PlayerDAO playerDAO;
     private PlayerLoader playerLoader;
     private List<PlayerWithWallet> players;
+    private BettingRoundGUI bettingRoundGUI;
     private int currentPlayerIndex = 1;
+    private int roundNumber = 0;
     
     public GameLogic() {
         DatabaseUtil.initializeDatabase(); // Initialize the database
@@ -38,6 +40,8 @@ public class GameLogic {
         this.communityCards = new ArrayList<>();
         addShutdownHook();
     }
+   
+
 
     private void addShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -53,7 +57,6 @@ public class GameLogic {
     
     public void start() {
         initializeGame();  // Setup game or new round
-//        dealHands();       // Deal cards
         startBettingRound();
         // Betting rounds
         preFBetting();
@@ -163,7 +166,8 @@ public class GameLogic {
                 // Create a new Player object
                 Player newPlayer = new Player(0, playerName, initialWallet); // Assuming 0 for ID, it should be auto-generated or managed
 
-                // Add the new player to the database
+                // Add the new player to the 
+               
                 try {
                     playerDAO.addPlayer(newPlayer);
                 } catch (SQLException e) {
@@ -268,11 +272,13 @@ public class GameLogic {
     }
     
     public void startBettingRound() {
-        javax.swing.SwingUtilities.invokeLater(() -> {
-            BettingRoundGUI bettingGUI = new BettingRoundGUI(this);
-            bettingGUI.setVisible(true);
-        });
-    }
+    javax.swing.SwingUtilities.invokeLater(() -> {
+        if (bettingRoundGUI == null) {  // Check if it's not already initialized
+            bettingRoundGUI = new BettingRoundGUI(this);  // Initialize at the class level
+        }
+        bettingRoundGUI.setVisible(true);
+    });
+}
     
     public void showCurrentPlayerTurn() {
         PlayerWithWallet currentPlayer = players.get(currentPlayerIndex);
@@ -326,12 +332,45 @@ public class GameLogic {
 
     private void moveToNextPlayer() {
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
-        if (players.get(currentPlayerIndex).isAI()) {
-            handleAITurn(players.get(currentPlayerIndex));
+        if (currentPlayerIndex == 0) {
+            // All players have completed their turn, proceed to the next round
+            progressToNextRound();
         } else {
             showCurrentPlayerTurn();
         }
     }
+    
+    private void progressToNextRound() {
+        roundNumber++;
+        switch (roundNumber) {
+            case 1:
+                // Post-Flop round
+                // No additional cards, just proceed to the next round of betting
+                break;
+            case 2:
+                // Turn round
+                communityCards.addAll(deck.dealCards(1)); // Deal the Turn card
+                break;
+            case 3:
+                // River round
+                communityCards.addAll(deck.dealCards(1)); // Deal the River card
+                break;
+            default:
+                // All rounds completed
+                determineWinner();
+//                endGame();
+                return;
+        }
+        currentPlayerIndex = 0;
+        showCurrentPlayerTurn();
+    }
+    
+   private void endGame() {
+    // Optionally close the betting GUI or reset the game state
+    javax.swing.SwingUtilities.invokeLater(() -> bettingRoundGUI.dispose()); // Close the GUI
+    System.out.println("Game over. Resetting the game...");
+    // Reset logic here if necessary
+}
 
     private void checkForEndOfRound() {
         long activePlrs = players.stream().filter(p -> !p.hasFolded()).count();
@@ -378,45 +417,80 @@ public class GameLogic {
 
         players.forEach(player -> System.out.println(player.getName() + "'s Hand: " + player.getCards()));
     }
-
     private void determineWinner() {
-
+   
         List<PlayerWithWallet> activePlayers = players.stream()
-                .filter(p -> !p.hasFolded())
-                .collect(Collectors.toList());
+            .filter(p -> !p.hasFolded())
+            .collect(Collectors.toList());
+    
         PokerHand bestHand = null;
         List<PlayerWithWallet> winners = new ArrayList<>();
 
-        for (PlayerWithWallet player : activePlayers) {
-            PokerHand playerBestHand = PokerHandEvaluator.evaluateBestHand(player.getCards(), communityCards);
-            if (bestHand == null || HandComparison.compareHands(playerBestHand, bestHand) > 0) {
-                bestHand = playerBestHand;
-                winners.clear();
-                winners.add(player);
-            } else if (HandComparison.compareHands(playerBestHand, bestHand) == 0) {
-                winners.add(player);
-            }
-        }
-
-        announceWinners(winners, bestHand);
-        // Calculate winnings per winner
-        int totalWinners = winners.size();
-        int winningsPerWinner = potAmount / totalWinners;
-
-        // Save winnings to winners' wallets and print out their winnings
-        for (PlayerWithWallet winner : winners) {
-            winner.addToWallet(winningsPerWinner);
-            System.out.println(winner.getName() + " wins $" + winningsPerWinner);
+    for (PlayerWithWallet player : activePlayers) {
+        PokerHand playerBestHand = PokerHandEvaluator.evaluateBestHand(player.getCards(), communityCards);
+        if (bestHand == null || HandComparison.compareHands(playerBestHand, bestHand) > 0) {
+            bestHand = playerBestHand;
+            winners.clear();
+            winners.add(player);
+        } else if (HandComparison.compareHands(playerBestHand, bestHand) == 0) {
+            winners.add(player);
         }
     }
 
-    private void announceWinners(List<PlayerWithWallet> winners, PokerHand bestHand) {
-        if (winners.size() > 1) {
-            System.out.println("It's a tie!");
-        }
-        for (PlayerWithWallet winner : winners) {
-            System.out.println(winner.getName() + " wins with a " + bestHand.getRank());
-        }
+    announceWinners(winners, bestHand);
+}
+
+public void announceWinners(List<PlayerWithWallet> winners, PokerHand bestHand) {
+    StringBuilder winnerMessage = new StringBuilder("Winner(s): \n");
+    for (PlayerWithWallet winner : winners) {
+        winnerMessage.append(winner.getName()).append(" with ").append(bestHand).append(", wins $").append(winner.getWallet()).append("\n");
     }
+    // Send winner information to the GUI to be displayed
+    if (bettingRoundGUI != null) {
+    javax.swing.SwingUtilities.invokeLater(() -> bettingRoundGUI.dispose());
+    javax.swing.SwingUtilities.invokeLater(() -> bettingRoundGUI.displayWinners(winnerMessage.toString()));
+} else {
+    System.err.println("GUI not initialized.");
+}
+}
+//    private void determineWinner() {
+//
+//        List<PlayerWithWallet> activePlayers = players.stream()
+//                .filter(p -> !p.hasFolded())
+//                .collect(Collectors.toList());
+//        PokerHand bestHand = null;
+//        List<PlayerWithWallet> winners = new ArrayList<>();
+//
+//        for (PlayerWithWallet player : activePlayers) {
+//            PokerHand playerBestHand = PokerHandEvaluator.evaluateBestHand(player.getCards(), communityCards);
+//            if (bestHand == null || HandComparison.compareHands(playerBestHand, bestHand) > 0) {
+//                bestHand = playerBestHand;
+//                winners.clear();
+//                winners.add(player);
+//            } else if (HandComparison.compareHands(playerBestHand, bestHand) == 0) {
+//                winners.add(player);
+//            }
+//        }
+//
+//        announceWinners(winners, bestHand);
+//        // Calculate winnings per winner
+//        int totalWinners = winners.size();
+//        int winningsPerWinner = potAmount / totalWinners;
+//
+//        // Save winnings to winners' wallets and print out their winnings
+//        for (PlayerWithWallet winner : winners) {
+//            winner.addToWallet(winningsPerWinner);
+//            System.out.println(winner.getName() + " wins $" + winningsPerWinner);
+//        }
+//    }
+
+//    private void announceWinners(List<PlayerWithWallet> winners, PokerHand bestHand) {
+//        if (winners.size() > 1) {
+//            System.out.println("It's a tie!");
+//        }
+//        for (PlayerWithWallet winner : winners) {
+//            System.out.println(winner.getName() + " wins with a " + bestHand.getRank());
+//        }
+//    }
 
 }
