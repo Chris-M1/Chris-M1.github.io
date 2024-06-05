@@ -17,10 +17,7 @@ public class Game {
         // Initialize the game
         GameLogic game = new GameLogic(scanner);
         game.start();
-         
     }
 }
-
-
 
 
