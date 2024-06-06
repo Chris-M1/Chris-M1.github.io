@@ -38,7 +38,20 @@ public class PlayerDAO {
         }
         return null;
     }
-
-    // Additional methods for update and delete operations
+    
+    public void updateWallet(int playerId, int newWalletAmount) {
+        String sql = "UPDATE Player SET wallet = ? WHERE id = ?";
+        
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             
+            stmt.setInt(1, newWalletAmount);
+            stmt.setInt(2, playerId);
+            stmt.executeUpdate();
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }
 

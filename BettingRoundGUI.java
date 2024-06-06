@@ -22,11 +22,10 @@ public class BettingRoundGUI extends JFrame {
     private JTextField betField;
     private static JLabel walletLabel;
     private static JLabel blindsLabel;
-    private JButton betButton;
-    private JButton checkButton;
-    private JButton callButton;
-    private JButton raiseButton;
     private JButton foldButton;
+    private JButton callCheckButton;
+    private JButton raiseButton;
+    private JButton allInButton;
     
 
     public BettingRoundGUI(GameLogic gameLogic) {
@@ -54,47 +53,78 @@ public class BettingRoundGUI extends JFrame {
         cardsPanel.add(communityCardsArea);
 
         add(cardsPanel, BorderLayout.NORTH);
-
-        JPanel inputPanel = new JPanel(new GridLayout(4, 1));
-        inputPanel.add(new JLabel("Enter your bet amount:"));
-        betField = new JTextField();
-        inputPanel.add(betField);
-        betButton = new JButton("Place Bet");
-        inputPanel.add(betButton);
-        checkButton = new JButton("Check");
-        inputPanel.add(checkButton);
+        
+        JPanel betPanel = new JPanel();
+        betField = new JTextField(10);
+        
         foldButton = new JButton("Fold");
-        inputPanel.add(foldButton);
-        add(inputPanel, BorderLayout.SOUTH);
-
-        betButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                placeBet();
-            }
-        });
-
-        checkButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                check();
-            }
-        });
+        callCheckButton = new JButton("Call/Check");
+        raiseButton = new JButton("Raise");
+        allInButton = new JButton("All-In");
 
         foldButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                fold();
+                gameLogic.fold();
+                updateCurrentPlayer();
             }
         });
+
+        callCheckButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                gameLogic.callCheck();
+                updateCurrentPlayer();
+            }
+        });
+
+        raiseButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                placeRaise();
+                updateCurrentPlayer();
+            }
+        });
+
+        allInButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                gameLogic.allIn();
+                updateCurrentPlayer();
+            }
+        });
+
+        betPanel.add(new JLabel("Bet Amount:"));
+        betPanel.add(betField);
+        betPanel.add(foldButton);
+        betPanel.add(callCheckButton);
+        betPanel.add(raiseButton);
+        betPanel.add(allInButton);
+        add(betPanel, BorderLayout.SOUTH);
+
+        pack();
 
         gameLogic.showCurrentPlayerTurn();
     }
     
+    public void showError(String message) {
+        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+    
+    private void updateCurrentPlayer() {
+        PlayerWithWallet currentPlayer = gameLogic.getCurrentPlayer();
+        displayArea.setText("It's " + currentPlayer.getName() + "'s turn. Cards: " + String.join(", ", currentPlayer.getCards()));
+        walletLabel.setText("Wallet: $" + currentPlayer.getWallet());
+    }
+    
     private void initializeComponents() {
+        displayArea = new JTextArea();
+        displayArea.setEditable(false);
+        add(new JScrollPane(displayArea), BorderLayout.CENTER);
+        
         blindsLabel = new JLabel();
         updateBlindsDisplay();
-        add(blindsLabel, BorderLayout.NORTH);
+        add(blindsLabel, BorderLayout.EAST);
         // Additional GUI setupdisplayArea = new JTextArea();
         displayArea = new JTextArea();
         
@@ -111,26 +141,14 @@ public class BettingRoundGUI extends JFrame {
                             ", Big Blind: " + gameLogic.getBlinds().getBigBlind());
     }
 
-    private void placeBet() {
-        String betText = betField.getText();
+    private void placeRaise() {
         try {
-            int betAmount = Integer.parseInt(betText);
-            gameLogic.placeBet(betAmount);
-            displayArea.append("You placed a bet of " + betAmount + ".\n");
+            int betAmount = Integer.parseInt(betField.getText());
+            gameLogic.raise(betAmount);
             betField.setText("");
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Invalid bet amount.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please enter a valid bet amount.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
         }
-    }
-
-    private void check() {
-        gameLogic.check();
-        displayArea.append("You checked.\n");
-    }
-
-    private void fold() {
-        gameLogic.fold();
-        displayArea.append("You folded.\n");
     }
 
     public static void updateCurrentPlayerDisplay(String playerName, List<String> playerCards, List<String> communityCards, int wallet) {
@@ -155,11 +173,9 @@ public class BettingRoundGUI extends JFrame {
         displayArea.append("The winner is " + winnerName + "\n");
     }
     
-   public void displayWinners(String message) {
-    JOptionPane.showMessageDialog(this, message, "Game Over", JOptionPane.INFORMATION_MESSAGE);
-    // Optionally close the window or reset the game
-    this.dispose(); // Closes the betting round window
-}
+    public void displayWinner(String winnerMessage) {
+        JOptionPane.showMessageDialog(this, winnerMessage, "Winner", JOptionPane.INFORMATION_MESSAGE);
+    }
 }
 
 
