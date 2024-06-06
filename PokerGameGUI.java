@@ -111,7 +111,7 @@ public class PokerGameGUI extends JFrame {
 
         try {
             int initialWallet = Integer.parseInt(walletText);
-            gameLogic.addNewPlayer(playerName, initialWallet, false);
+            gameLogic.addNewPlayer(playerName, initialWallet);
             listModel.addElement(playerName + " - Wallet: $" + initialWallet);
             displayArea.append("Player " + playerName + " with wallet " + initialWallet + " added.\n");
             nameField.setText("");
@@ -168,12 +168,13 @@ public class PokerGameGUI extends JFrame {
                 .collect(Collectors.toList());
 
         gameLogic.setPlayers(players);
-        gameLogic.initializeGame();
         displayArea.append("Game started with players:\n");
         for (PlayerWithWallet player : gameLogic.getPlayers()) {
             displayArea.append("Name: " + player.getName() + ", Wallet: " + player.getWallet() + "\n");
         }
+        gameLogic.initializeGame();
         gameLogic.BlindSetup(this); // Start the betting round
+
     }
     
     public void refreshPlayerList() {

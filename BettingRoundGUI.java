@@ -8,7 +8,6 @@ package game;
  *
  * @author chris
  */
-
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
@@ -62,43 +61,32 @@ public class BettingRoundGUI extends JFrame {
         allInButton = new JButton("All-In");
         resetButton = new JButton("Reset");
 
-        foldButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                gameLogic.fold();
-                updateCurrentPlayer();
-            }
+        foldButton.addActionListener((ActionEvent e) -> {
+            gameLogic.fold();
+            resetTableView();
+            updateCurrentPlayer();
         });
 
-        callCheckButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                gameLogic.callCheck();
-                updateCurrentPlayer();
-            }
+        callCheckButton.addActionListener((ActionEvent e) -> {
+            gameLogic.callCheck();
+            resetTableView();
+            updateCurrentPlayer();
         });
 
-        raiseButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                placeRaise();
-                updateCurrentPlayer();
-            }
+        raiseButton.addActionListener((ActionEvent e) -> {
+            placeRaise();
+            resetTableView();
+            updateCurrentPlayer();
         });
 
-        allInButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                gameLogic.allIn();
-                updateCurrentPlayer();
-            }
+        allInButton.addActionListener((ActionEvent e) -> {
+            gameLogic.allIn();
+            resetTableView();
+            updateCurrentPlayer();
         });
 
-        resetButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
+        resetButton.addActionListener((ActionEvent e) -> {
+            dispose();
         });
 
         betPanel.add(new JLabel("Bet Amount:"));
@@ -115,6 +103,7 @@ public class BettingRoundGUI extends JFrame {
         setLocationRelativeTo(null);
 
         gameLogic.showCurrentPlayerTurn();
+        updateCurrentPlayer();
     }
 
     private JTextPane createCenteredTextPane(String title) {
@@ -145,10 +134,13 @@ public class BettingRoundGUI extends JFrame {
     }
 
     private void updateCurrentPlayer() {
-        PlayerWithWallet currentPlayer = gameLogic.getCurrentPlayer();
-        gameLogic.displayTableInfo();
-        appendMessage(currentPlayer.getName() + "'s turn. Cards: " + String.join(", ", currentPlayer.getCards()) + "\n");
-        appendMessage("Wallet: $" + currentPlayer.getWallet() + "\n" + "Current bet: " + currentPlayer.getCurrentBet() + "\n" + "Bet To Match: " + gameLogic.getHighestBet());
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            PlayerWithWallet currentPlayer = gameLogic.getCurrentPlayer();
+            gameLogic.displayTableInfo();
+            appendMessage(currentPlayer.getName() + "'s turn. Cards: " + String.join(", ", currentPlayer.getCards()) + "\n");
+            appendMessage("Wallet: $" + currentPlayer.getWallet() + "\n" + "Current bet: " + currentPlayer.getCurrentBet() + "\n" + "Bet To Match: " + gameLogic.getHighestBet());
+        });
+
     }
 
     public void resetTableView() {
@@ -183,6 +175,7 @@ public class BettingRoundGUI extends JFrame {
                     .append(", Cards: ").append(String.join(", ", player.getCards()))
                     .append("\n");
         }
+
         displayArea.setText(builder.toString());
     }
 
@@ -203,8 +196,6 @@ public class BettingRoundGUI extends JFrame {
         try {
             doc.insertString(doc.getLength(), message + "\n", center);
         } catch (BadLocationException e) {
-            e.printStackTrace();
         }
     }
 }
-

@@ -85,10 +85,10 @@ public class GameLogic {
         if (blindsGUI.getSmallBlind() > 0 && blindsGUI.getBigBlind() > 0) {
             this.blinds = new Blind(blindsGUI.getSmallBlind(), blindsGUI.getBigBlind());
             deductBlinds(blinds.getSmallBlind(), blinds.getBigBlind());
+            dealCardsToPlayers();
+            dealCommunityCards();
             bettingRoundGUI = new BettingRoundGUI(this, pokerGameGUI);
             bettingRoundGUI.setVisible(true);
-
-//            startBettingRound(pokerGameGUI); // Start the first betting round
         } else {
             System.out.println("Game not started. Blinds not set.");
         }
@@ -96,9 +96,7 @@ public class GameLogic {
 
     public void initializeGame() {
         deck.shuffle();
-        dealCardsToPlayers();
-        dealCommunityCards();
-        System.out.println("Loaded players: ");
+        System.out.println("Loaded players: \n");
         for (PlayerWithWallet player : players) {
             System.out.println("Name: " + player.getName() + ", Wallet: " + player.getWallet() + ", Cards: " + player.getCards());
         }
@@ -137,7 +135,7 @@ public class GameLogic {
         new PlayerDAO().deletePlayer(name);
     }
 
-    public void addNewPlayer(String playerName, int initialWallet, boolean isAI) {
+    public void addNewPlayer(String playerName, int initialWallet) {
         PlayerWithWallet newPlayer = new PlayerWithWallet(playerName, initialWallet);
 
         try {
@@ -195,9 +193,6 @@ public class GameLogic {
             }
         }
         throw new SQLException("Player not found");
-    }
-
-    public void setBlinds(int smallBlind, int bigBlind) {
     }
 
     private void deductBlinds(int sBlind, int bBlind) {
@@ -375,7 +370,7 @@ public class GameLogic {
     }
 
     public void displayTableInfo() {
-    bettingRoundGUI.resetTableView();
+    
     StringBuilder info = new StringBuilder("=!@ Table Information @!=\nPlayers at the table:\n");
     for (PlayerWithWallet player : players) {
         if (player.hasFolded()) {

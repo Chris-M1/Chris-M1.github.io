@@ -16,25 +16,34 @@ public class BlindsSetupGUI {
     private int bigBlind;
 
     public BlindsSetupGUI() {
-        JTextField smallBlindField = new JTextField(5);
-        JTextField bigBlindField = new JTextField(5);
-        JPanel dialogPanel = new JPanel();
+        while (true) { // Loop until valid input is provided
+            JTextField smallBlindField = new JTextField(5);
+            JTextField bigBlindField = new JTextField(5);
+            JPanel dialogPanel = new JPanel();
 
-        dialogPanel.add(new JLabel("Small Blind:"));
-        dialogPanel.add(smallBlindField);
-        dialogPanel.add(Box.createHorizontalStrut(15)); // a spacer
-        dialogPanel.add(new JLabel("Big Blind:"));
-        dialogPanel.add(bigBlindField);
+            dialogPanel.add(new JLabel("Small Blind:"));
+            dialogPanel.add(smallBlindField);
+            dialogPanel.add(Box.createHorizontalStrut(15)); // a spacer
+            dialogPanel.add(new JLabel("Big Blind:"));
+            dialogPanel.add(bigBlindField);
 
-        int result = JOptionPane.showConfirmDialog(null, dialogPanel,
-                "Please Enter Blinds", JOptionPane.OK_CANCEL_OPTION);
-        if (result == JOptionPane.OK_OPTION) {
-            try {
-                smallBlind = Integer.parseInt(smallBlindField.getText());
-                bigBlind = Integer.parseInt(bigBlindField.getText());
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(null, "Please enter valid numbers.");
-                return; // Optionally call the constructor again to retry
+            int result = JOptionPane.showConfirmDialog(null, dialogPanel,
+                    "Please Enter Blinds", JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.OK_OPTION) {
+                try {
+                    smallBlind = Integer.parseInt(smallBlindField.getText());
+                    bigBlind = Integer.parseInt(bigBlindField.getText());
+
+                    if (bigBlind < smallBlind) {
+                        JOptionPane.showMessageDialog(null, "The Big Blind must be greater or equal to the Small Blind. Please enter valid blinds.");
+                    } else {
+                        break; // Exit the loop if the input is valid
+                    }
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(null, "Please enter valid numbers.");
+                }
+            } else {
+                break; // Exit the loop if the user cancels the dialog
             }
         }
     }
