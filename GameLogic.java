@@ -43,7 +43,7 @@ public class GameLogic {
     public void setPokerGameGUI(PokerGameGUI pokerGameGUI) {
         this.pokerGameGUI = pokerGameGUI;
     }
-    
+
     public int getHighestBet() {
         return this.highestBet;
     }
@@ -225,7 +225,7 @@ public class GameLogic {
             currentPlayerIndex = +2;
         }
     }
-    
+
     public void showCurrentPlayerTurn() {
         PlayerWithWallet currentPlayer = players.get(currentPlayerIndex);
         System.out.println("It's " + currentPlayer.getName() + "'s turn.");
@@ -263,17 +263,17 @@ public class GameLogic {
     public void raise(int amount) {
         PlayerWithWallet currentPlayer = players.get(currentPlayerIndex);
         int raiseAmt = amount - currentPlayer.getCurrentBet();
-        if (currentPlayer.getWallet() >= raiseAmt) {
-            currentPlayer.subtractFromWallet(raiseAmt);
-            potAmount += raiseAmt;
-            currentPlayer.setCurrentBet(amount);
-            highestBet = amount;
-            System.out.println(currentPlayer.getName() + " raises to $" + amount);
-            moveToNextPlayer();
-        } else {
-            System.out.println("Not enough funds to raise. Consider going all-in or folding.");
-            bettingRoundGUI.showError("Not enough funds to raise. Consider going all-in or folding.");
-        }
+            if (currentPlayer.getWallet() >= raiseAmt) {
+                currentPlayer.subtractFromWallet(raiseAmt);
+                potAmount += raiseAmt;
+                currentPlayer.setCurrentBet(amount);
+                highestBet = amount;
+                System.out.println(currentPlayer.getName() + " raises to $" + amount);
+                moveToNextPlayer();
+            } else {
+                System.out.println("Not enough funds to raise. Consider going all-in or folding.");
+                bettingRoundGUI.showError("Not enough funds to raise. Consider going all-in or folding.");
+            }
     }
 
     public void allIn() {
@@ -370,31 +370,30 @@ public class GameLogic {
     }
 
     public void displayTableInfo() {
-    
-    StringBuilder info = new StringBuilder("=!@ Table Information @!=\nPlayers at the table:\n");
-    for (PlayerWithWallet player : players) {
-        if (player.hasFolded()) {
-            info.append(player.getName()).append(": Folded\n");
+
+        StringBuilder info = new StringBuilder("=!@ Table Information @!=\nPlayers at the table:\n");
+        for (PlayerWithWallet player : players) {
+            if (player.hasFolded()) {
+                info.append(player.getName()).append(": Folded\n");
+            } else {
+                info.append(player.getName())
+                        .append(": Active - Wallet: $")
+                        .append(player.getWallet())
+                        .append(", Cards: ")
+                        .append(String.join(", ", player.getCards()))
+                        .append("\n");
+            }
+        }
+        String communityCardsDisplay = String.join(", ", communityCards);
+        info.append("Community Cards: ").append(communityCardsDisplay).append("\n");
+        info.append("Current Pot: $").append(potAmount).append("\n");
+
+        if (bettingRoundGUI != null) {
+            bettingRoundGUI.appendMessage(info.toString());
         } else {
-            info.append(player.getName())
-                .append(": Active - Wallet: $")
-                .append(player.getWallet())
-                .append(", Cards: ")
-                .append(String.join(", ", player.getCards()))
-                .append("\n");
+            System.out.println(info);
         }
     }
-    String communityCardsDisplay = String.join(", ", communityCards);
-    info.append("Community Cards: ").append(communityCardsDisplay).append("\n");
-    info.append("Current Pot: $").append(potAmount).append("\n");
-
-    if (bettingRoundGUI != null) {
-        bettingRoundGUI.appendMessage(info.toString());
-    } else {
-        System.out.println(info);
-    }
-}
-
 
     public void showdown() {
         StringBuilder showdownInfo = new StringBuilder("\n*** SHOWDOWN ***\nCommunity Cards: ").append(communityCards).append("\n");

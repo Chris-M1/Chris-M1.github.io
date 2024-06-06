@@ -36,7 +36,10 @@ public class BlindsSetupGUI {
 
                     if (bigBlind < smallBlind) {
                         JOptionPane.showMessageDialog(null, "The Big Blind must be greater or equal to the Small Blind. Please enter valid blinds.");
-                    } else {
+                    }
+                    else if(bigBlind <= 0 || smallBlind <= 0) 
+                        JOptionPane.showMessageDialog(null, "The Blinds must be greater than 0. Please enter valid blinds.");
+                    else {
                         break; // Exit the loop if the input is valid
                     }
                 } catch (NumberFormatException e) {
