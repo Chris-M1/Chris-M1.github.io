@@ -8,17 +8,21 @@ package game;
  *
  * @author chris
  */
+
 import javax.swing.*;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
 public class BettingRoundGUI extends JFrame {
+
     private static GameLogic gameLogic;
-    private static JTextArea displayArea;
-    private static JTextArea playerCardsArea;
-    private static JTextArea communityCardsArea;
+    private PokerGameGUI pokerGameGUI;
+    private static JTextPane displayArea;
+    private static JTextPane playerCardsArea;
+    private static JTextPane communityCardsArea;
     private JTextField betField;
     private static JLabel walletLabel;
     private static JLabel blindsLabel;
@@ -28,34 +32,30 @@ public class BettingRoundGUI extends JFrame {
     private JButton allInButton;
     private JButton resetButton;
 
-    public BettingRoundGUI(GameLogic gameLogic) {
+    public BettingRoundGUI(GameLogic gameLogic, PokerGameGUI pokerGameGUI) {
         this.gameLogic = gameLogic;
-        initializeComponents();
-        
+        this.pokerGameGUI = pokerGameGUI;
+
         setTitle("Poker Betting Round");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        displayArea = new JTextArea();
+        displayArea = new JTextPane();
         displayArea.setEditable(false);
         add(new JScrollPane(displayArea), BorderLayout.CENTER);
 
         JPanel cardsPanel = new JPanel(new GridLayout(2, 1));
-        playerCardsArea = new JTextArea();
-        playerCardsArea.setEditable(false);
-        playerCardsArea.setBorder(BorderFactory.createTitledBorder("Your Cards"));
+        playerCardsArea = createCenteredTextPane("Your Cards");
+        communityCardsArea = createCenteredTextPane("Community Cards");
+
         cardsPanel.add(playerCardsArea);
-
-        communityCardsArea = new JTextArea();
-        communityCardsArea.setEditable(false);
-        communityCardsArea.setBorder(BorderFactory.createTitledBorder("Community Cards"));
         cardsPanel.add(communityCardsArea);
-
         add(cardsPanel, BorderLayout.NORTH);
-        
+
         JPanel betPanel = new JPanel();
         betField = new JTextField(10);
-        
+        betField.setHorizontalAlignment(JTextField.CENTER);
+
         foldButton = new JButton("Fold");
         callCheckButton = new JButton("Call/Check");
         raiseButton = new JButton("Raise");
@@ -93,7 +93,7 @@ public class BettingRoundGUI extends JFrame {
                 updateCurrentPlayer();
             }
         });
-        
+
         resetButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -116,43 +116,48 @@ public class BettingRoundGUI extends JFrame {
 
         gameLogic.showCurrentPlayerTurn();
     }
-    
-    public void reset() {
+
+    private JTextPane createCenteredTextPane(String title) {
+        JTextPane textPane = new JTextPane();
+        textPane.setEditable(false);
+        textPane.setBorder(BorderFactory.createTitledBorder(title));
+        StyledDocument doc = textPane.getStyledDocument();
+        SimpleAttributeSet center = new SimpleAttributeSet();
+        StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+        doc.setParagraphAttributes(0, doc.getLength(), center, false);
+        return textPane;
+    }
+
+    public void resetGame() {
+        gameLogic.resetGame();
+        pokerGameGUI.refreshPlayerList();
         dispose();
     }
-    
+
+    public void scheduleReset() {
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            resetGame();
+        });
+    }
+
     public void showError(String message) {
         JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
-    
+
     private void updateCurrentPlayer() {
         PlayerWithWallet currentPlayer = gameLogic.getCurrentPlayer();
-        displayArea.setText("It's " + currentPlayer.getName() + "'s turn. Cards: " + String.join(", ", currentPlayer.getCards()));
-        walletLabel.setText("Wallet: $" + currentPlayer.getWallet());
+        gameLogic.displayTableInfo();
+        appendMessage(currentPlayer.getName() + "'s turn. Cards: " + String.join(", ", currentPlayer.getCards()) + "\n");
+        appendMessage("Wallet: $" + currentPlayer.getWallet() + "\n" + "Current bet: " + currentPlayer.getCurrentBet() + "\n" + "Bet To Match: " + gameLogic.getHighestBet());
     }
-    
-    private void initializeComponents() {
-        displayArea = new JTextArea();
-        displayArea.setEditable(false);
-        add(new JScrollPane(displayArea), BorderLayout.CENTER);
-        
-        blindsLabel = new JLabel();
-        updateBlindsDisplay();
-        add(blindsLabel, BorderLayout.EAST);
-        // Additional GUI setupdisplayArea = new JTextArea();
-        displayArea = new JTextArea();
-        
-        walletLabel = new JLabel("Wallet: $0");
-        this.add(displayArea, BorderLayout.CENTER);
-        this.add(walletLabel, BorderLayout.SOUTH);
-        this.pack(); // Layout components
-        this.setVisible(true); // Make GUI visible
-        
+
+    public void resetTableView() {
+        displayArea.setText("");
     }
 
     public void updateBlindsDisplay() {
-        blindsLabel.setText("Small Blind: " + gameLogic.getBlinds().getSmallBlind() + 
-                            ", Big Blind: " + gameLogic.getBlinds().getBigBlind());
+        blindsLabel.setText("Small Blind: " + gameLogic.getBlinds().getSmallBlind()
+                + ", Big Blind: " + gameLogic.getBlinds().getBigBlind());
     }
 
     private void placeRaise() {
@@ -168,28 +173,38 @@ public class BettingRoundGUI extends JFrame {
     public static void updateCurrentPlayerDisplay(String playerName, List<String> playerCards, List<String> communityCards, int wallet) {
         playerCardsArea.setText(String.join(", ", playerCards));
         communityCardsArea.setText(String.join(", ", communityCards));
-        walletLabel.setText("Wallet: $" + wallet);
     }
-    
+
     public void updatePlayerDisplays(List<PlayerWithWallet> players) {
         StringBuilder builder = new StringBuilder();
         for (PlayerWithWallet player : players) {
             builder.append("Name: ").append(player.getName())
-                   .append(", Wallet: $").append(player.getWallet())
-                   .append(", Cards: ").append(String.join(", ", player.getCards()))
-                   .append("\n");
+                    .append(", Wallet: $").append(player.getWallet())
+                    .append(", Cards: ").append(String.join(", ", player.getCards()))
+                    .append("\n");
         }
         displayArea.setText(builder.toString());
     }
-    
+
     public void showWinner(String winnerName) {
         JOptionPane.showMessageDialog(this, "The winner is " + winnerName, "Game Over", JOptionPane.INFORMATION_MESSAGE);
-        displayArea.append("The winner is " + winnerName + "\n");
+        appendMessage("The winner is " + winnerName + "\n");
     }
-    
+
     public void displayWinner(String winnerMessage) {
         JOptionPane.showMessageDialog(this, winnerMessage, "Winner", JOptionPane.INFORMATION_MESSAGE);
     }
-}
 
+    public void appendMessage(String message) {
+        StyledDocument doc = displayArea.getStyledDocument();
+        SimpleAttributeSet center = new SimpleAttributeSet();
+        StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+        doc.setParagraphAttributes(0, doc.getLength(), center, false);
+        try {
+            doc.insertString(doc.getLength(), message + "\n", center);
+        } catch (BadLocationException e) {
+            e.printStackTrace();
+        }
+    }
+}
 

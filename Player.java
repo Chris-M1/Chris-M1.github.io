@@ -9,6 +9,7 @@ import java.util.List;
 import java.math.BigDecimal;
 
 public class Player {
+
     private int id;
     private String name;
     private int wallet;
@@ -20,8 +21,7 @@ public class Player {
         this.name = name;
         this.wallet = wallet;
     }
-   
-    
+
     public Player(int id, String name, int wallet) {
         this.id = id;
         this.name = name;
@@ -35,9 +35,9 @@ public class Player {
     public List<String> getCards() {
         return new ArrayList<>(cards);
     }
-    
+
     public void unfold() {
-    this.folded = false;
+        this.folded = false;
     }
 
     public void setCards(List<String> newCards) {
@@ -63,12 +63,15 @@ public class Player {
     public boolean hasFolded() {
         return folded;
     }
+
     public boolean isAllIn() {
         return allIn;
     }
-    public void allIn(){
+
+    public void allIn() {
         allIn = true;
     }
+
     @Override
     public String toString() {
         return getName() + " | Cards: " + cards.toString(); // Customize as needed

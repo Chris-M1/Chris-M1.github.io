@@ -11,6 +11,7 @@ package game;
 import javax.swing.*;
 
 public class BlindsSetupGUI {
+
     private int smallBlind;
     private int bigBlind;
 
@@ -25,8 +26,8 @@ public class BlindsSetupGUI {
         dialogPanel.add(new JLabel("Big Blind:"));
         dialogPanel.add(bigBlindField);
 
-        int result = JOptionPane.showConfirmDialog(null, dialogPanel, 
-               "Please Enter Blinds", JOptionPane.OK_CANCEL_OPTION);
+        int result = JOptionPane.showConfirmDialog(null, dialogPanel,
+                "Please Enter Blinds", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION) {
             try {
                 smallBlind = Integer.parseInt(smallBlindField.getText());
