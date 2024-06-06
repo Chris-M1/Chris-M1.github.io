@@ -155,8 +155,15 @@ public class BettingRoundGUI extends JFrame {
     private void placeRaise() {
         try {
             int betAmount = Integer.parseInt(betField.getText());
-            gameLogic.raise(betAmount);
-            betField.setText("");
+            int highestBet = gameLogic.getHighestBet();
+
+            if (betAmount <= highestBet) {
+                JOptionPane.showMessageDialog(this, "Raise amount must be greater than the current highest bet.", "Invalid Raise", JOptionPane.ERROR_MESSAGE);
+            } else {
+                gameLogic.raise(betAmount);
+                betField.setText("");
+                updateCurrentPlayer();
+            }
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Please enter a valid bet amount.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
         }
