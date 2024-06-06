@@ -8,6 +8,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class PokerGameGUI extends JFrame {
     private GameLogic gameLogic;
@@ -16,6 +18,10 @@ public class PokerGameGUI extends JFrame {
     private JTextField walletField;
     private JButton addButton;
     private JButton startButton;
+    private JButton alterButton;
+    private JButton deleteButton;
+    private JList<String> playerList;
+    private DefaultListModel<String> listModel;
 
     public PokerGameGUI() {
         gameLogic = new GameLogic();
@@ -29,7 +35,11 @@ public class PokerGameGUI extends JFrame {
         displayArea.setEditable(false);
         add(new JScrollPane(displayArea), BorderLayout.CENTER);
 
-        JPanel inputPanel = new JPanel(new GridLayout(3, 2));
+        listModel = new DefaultListModel<>();
+        playerList = new JList<>(listModel);
+        add(new JScrollPane(playerList), BorderLayout.WEST);
+
+        JPanel inputPanel = new JPanel(new GridLayout(4, 2));
         inputPanel.add(new JLabel("Player Name:"));
         nameField = new JTextField();
         inputPanel.add(nameField);
@@ -38,6 +48,10 @@ public class PokerGameGUI extends JFrame {
         inputPanel.add(walletField);
         addButton = new JButton("Add Player");
         inputPanel.add(addButton);
+        alterButton = new JButton("Alter Player");
+        inputPanel.add(alterButton);
+        deleteButton = new JButton("Delete Player");
+        inputPanel.add(deleteButton);
         startButton = new JButton("Start Game");
         inputPanel.add(startButton);
         add(inputPanel, BorderLayout.SOUTH);
@@ -49,20 +63,50 @@ public class PokerGameGUI extends JFrame {
             }
         });
 
+        alterButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                alterPlayer();
+            }
+        });
+
+        deleteButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                deletePlayer();
+            }
+        });
+
         startButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 startGame();
             }
         });
+
+        loadPlayers();
+    }
+
+    private void loadPlayers() {
+        List<PlayerWithWallet> players = gameLogic.getAllPlayers();
+        for (PlayerWithWallet player : players) {
+            listModel.addElement(player.getName() + " - Wallet: $" + player.getWallet());
+        }
     }
 
     private void addPlayer() {
         String playerName = nameField.getText();
         String walletText = walletField.getText();
+
+        if (listModel.contains(playerName)) {
+            JOptionPane.showMessageDialog(this, "Player name already exists.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         try {
             int initialWallet = Integer.parseInt(walletText);
             gameLogic.addNewPlayer(playerName, initialWallet, false);
+            listModel.addElement(playerName + " - Wallet: $" + initialWallet);
             displayArea.append("Player " + playerName + " with wallet " + initialWallet + " added.\n");
             nameField.setText("");
             walletField.setText("");
@@ -71,12 +115,63 @@ public class PokerGameGUI extends JFrame {
         }
     }
 
+    private void alterPlayer() {
+        String selectedValue = playerList.getSelectedValue();
+        if (selectedValue == null) {
+            JOptionPane.showMessageDialog(this, "No player selected.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String playerName = selectedValue.split(" - ")[0];
+        String newWalletText = walletField.getText();
+        try {
+            int newWallet = Integer.parseInt(newWalletText);
+            gameLogic.updatePlayerWallet(playerName, newWallet);
+            int index = playerList.getSelectedIndex();
+            listModel.set(index, playerName + " - Wallet: $" + newWallet);
+            displayArea.append("Player " + playerName + "'s wallet updated to " + newWallet + ".\n");
+            walletField.setText("");
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Invalid wallet amount.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void deletePlayer() {
+        String selectedValue = playerList.getSelectedValue();
+        if (selectedValue == null) {
+            JOptionPane.showMessageDialog(this, "No player selected.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String playerName = selectedValue.split(" - ")[0];
+        gameLogic.deletePlayer(playerName);
+        listModel.removeElement(selectedValue);
+        displayArea.append("Player " + playerName + " deleted.\n");
+    }
+
     private void startGame() {
+        List<String> selectedPlayers = playerList.getSelectedValuesList();
+        if (selectedPlayers.size() < 2) {
+            JOptionPane.showMessageDialog(this, "Select at least two players to start the game.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        List<PlayerWithWallet> players = selectedPlayers.stream()
+                .map(player -> gameLogic.getPlayerByName(player.split(" - ")[0]))
+                .collect(Collectors.toList());
+
+        gameLogic.setPlayers(players);
         gameLogic.initializeGame();
         displayArea.append("Game started with players:\n");
         for (PlayerWithWallet player : gameLogic.getPlayers()) {
             displayArea.append("Name: " + player.getName() + ", Wallet: " + player.getWallet() + "\n");
         }
         gameLogic.BlindSetup(); // Start the betting round
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            new PokerGameGUI().setVisible(true);
+        });
     }
 }

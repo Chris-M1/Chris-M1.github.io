@@ -27,6 +27,7 @@ public class GameLogic {
     private PlayerLoader playerLoader;
     private List<PlayerWithWallet> players;
     private BettingRoundGUI bettingRoundGUI;
+    private BlindsSetupGUI blindsGUI;
     private int currentPlayerIndex = 1;
     private int roundNumber = 0;
     private Blind blinds;
@@ -85,6 +86,7 @@ public class GameLogic {
     BlindsSetupGUI blindsGUI = new BlindsSetupGUI();
     if (blindsGUI.getSmallBlind() > 0 && blindsGUI.getBigBlind() > 0) {
         this.blinds = new Blind(blindsGUI.getSmallBlind(), blindsGUI.getBigBlind());
+        deductBlinds(blinds.getSmallBlind(), blinds.getBigBlind());
         bettingRoundGUI = new BettingRoundGUI(this);
         bettingRoundGUI.setVisible(true);
         
@@ -99,8 +101,7 @@ public class GameLogic {
         players = loadPlayerWallets();
         deck.shuffle();
         dealCardsToPlayers();
-        dealCommunityCards();
-        deductBlinds();
+        dealCommunityCards();      
         System.out.println("Loaded players: ");
         for (PlayerWithWallet player : players) {
             System.out.println("Name: " + player.getName() + ", Wallet: " + player.getWallet() + ", Cards: " + player.getCards());
@@ -123,6 +124,25 @@ public class GameLogic {
         return "Community Cards: " + String.join(", ", communityCards);
     }
 
+
+    
+    public List<PlayerWithWallet> getAllPlayers() {
+        // Load all players from the database
+        return new PlayerLoader().loadPlayersWithWallet();
+    }
+    
+    public PlayerWithWallet getPlayerByName(String name) {
+        return getAllPlayers().stream()
+                .filter(player -> player.getName().equals(name))
+                .findFirst()
+                .orElse(null);
+    }
+    
+    public void deletePlayer(String name) {
+        // Delete player from the database
+        new PlayerDAO().deletePlayer(name);
+    }
+    
     public void addNewPlayer(String playerName, int initialWallet, boolean isAI) {
         PlayerWithWallet newPlayer = new PlayerWithWallet(playerName, initialWallet);
 
@@ -133,6 +153,23 @@ public class GameLogic {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+    
+    public void updatePlayerWallet(String name, int newWallet) {
+        // Update player's wallet in the database
+        PlayerWithWallet player = getPlayerByName(name);
+        if (player != null) {
+            player.setWallet(newWallet);
+            player.updatePlayerWalletDB();
+        }
+    }
+    
+    public void setPlayers(List<PlayerWithWallet> players) {
+        this.players = players;
+    }
+    
+    public List<PlayerWithWallet> getPlayers() {
+        return players;
     }
 
     public Player getPlayer(int id) {
@@ -147,11 +184,7 @@ public class GameLogic {
     public PlayerWithWallet getCurrentPlayer() {
         return players.get(currentPlayerIndex);
     }
-    
-    public List<PlayerWithWallet> getPlayers() {
-        return players;
-    }
-    
+
     private List<PlayerWithWallet> loadPlayerWallets() {
         return playerLoader.loadPlayersWithWallet();
     }
@@ -173,9 +206,12 @@ public class GameLogic {
         throw new SQLException("Player not found");
     }
 
+    public void setBlinds(int smallBlind, int bigBlind) {
+        this.smallBlind = smallBlind;
+        this.bigBlind = bigBlind;
+    }
 
-
-    private void deductBlinds() {
+    private void deductBlinds(int sBlind, int bBlind) {
         dPos = (dPos + 1) % players.size(); // Update dealer position
         int sBP = (dPos + 1) % players.size(); // Small blind position
         int bBP = (dPos + 2) % players.size(); // Big blind position
@@ -184,13 +220,13 @@ public class GameLogic {
         PlayerWithWallet bBPl = players.get(bBP); // Big blind player
 
         // Deduct small blind
-        int aSB = sBPl.getWallet() >= smallBlind ? smallBlind : sBPl.getWallet(); // Actual small blind
+        int aSB = sBPl.getWallet() >= sBlind ? sBlind : sBPl.getWallet(); // Actual small blind
         sBPl.subtractFromWallet(aSB);
         potAmount += aSB;
         System.out.println(sBPl.getName() + " posts small blind of $" + aSB);
 
         // Deduct big blind
-        int aBB = bBPl.getWallet() >= bigBlind ? bigBlind : bBPl.getWallet(); // Actual big blind
+        int aBB = bBPl.getWallet() >= bBlind ? bBlind : bBPl.getWallet(); // Actual big blind
         bBPl.subtractFromWallet(aBB);
         potAmount += aBB;
         System.out.println(bBPl.getName() + " posts big blind of $" + aBB);
@@ -198,13 +234,6 @@ public class GameLogic {
         // Update the GUI to reflect the new wallet balances
         updateGUI();
     }
-
-//    private void dealHands() {
-//        for (Player player : players) {
-//            player.receiveCard(deck.draw());
-//            player.receiveCard(deck.draw());
-//        }
-//    }
 
     private void preFBetting() {
         System.out.println("! Pre-Flop Betting Round !");
@@ -346,10 +375,12 @@ public class GameLogic {
             String winnerMessage = String.format("%s wins by default with $%d", player.getName(), potAmount);
             System.out.println(winnerMessage);
             player.addToWallet(potAmount);
+            player.updatePlayerWalletDB();
             bettingRoundGUI.displayWinner(winnerMessage);
             break; // Since the winner is found, no need to continue the loop
         }
     }
+    updateAllPlayerWalletsInDB();
 }
     
     private void progressToNextRound() {
@@ -442,25 +473,33 @@ public class GameLogic {
 }
 
 public void announceWinners(List<PlayerWithWallet> winners, PokerHand bestHand) {
-        StringBuilder winnerMessage = new StringBuilder("Winner(s): \n");
-        for (PlayerWithWallet winner : winners) {
-            winner.addToWallet(potAmount);
-            winnerMessage.append(winner.getName())
-                .append(" with ")
-                .append(bestHand.getRank())
-                .append(", wins $")
-                .append(potAmount)
-                .append("\n");
-        }
-
-        // Send winner information to the GUI to be displayed
-        if (bettingRoundGUI != null) {
-            javax.swing.SwingUtilities.invokeLater(() -> {
-                bettingRoundGUI.dispose();
-                bettingRoundGUI.displayWinner(winnerMessage.toString());
-            });
-        } else {
-            System.err.println("GUI not initialized.");
-        }
+    StringBuilder winnerMessage = new StringBuilder("Winner(s): \n");
+    for (PlayerWithWallet winner : winners) {
+        winner.addToWallet(potAmount);
+        winnerMessage.append(winner.getName())
+            .append(" with ")
+            .append(bestHand.getRank())
+            .append(", wins $")
+            .append(potAmount)
+            .append("\n");
     }
+
+    // Send winner information to the GUI to be displayed
+    if (bettingRoundGUI != null) {
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            bettingRoundGUI.dispose();
+            bettingRoundGUI.displayWinner(winnerMessage.toString());
+        });
+    } else {
+        System.err.println("GUI not initialized.");
+    }
+
+    updateAllPlayerWalletsInDB();
+}
+
+private void updateAllPlayerWalletsInDB() {
+    for (PlayerWithWallet player : players) {
+        player.updatePlayerWalletDB();
+    }
+}
 }

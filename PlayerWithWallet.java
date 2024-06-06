@@ -61,16 +61,19 @@ public class PlayerWithWallet extends Player {
     public void setCurrentBet(int currentBet) {
         this.currentBet = currentBet;
     }
-
+    
     public void addToWallet(int amount) {
-        this.wallet += amount;
-        playerDAO.updateWallet(this.getId(), this.wallet); // Update the database
+        this.wallet +=amount;
     }
-
+    
     public void subtractFromWallet(int amount) {
         this.wallet -= amount;
+    }
+
+    public void updatePlayerWalletDB() {
         playerDAO.updateWallet(this.getId(), this.wallet); // Update the database
     }
+
     
     @Override
     public String toString() {
