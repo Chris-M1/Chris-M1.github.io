@@ -26,14 +26,13 @@ public class BettingRoundGUI extends JFrame {
     private JButton callCheckButton;
     private JButton raiseButton;
     private JButton allInButton;
-    
+    private JButton resetButton;
 
     public BettingRoundGUI(GameLogic gameLogic) {
         this.gameLogic = gameLogic;
         initializeComponents();
-
+        
         setTitle("Poker Betting Round");
-        setSize(600, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
@@ -61,6 +60,7 @@ public class BettingRoundGUI extends JFrame {
         callCheckButton = new JButton("Call/Check");
         raiseButton = new JButton("Raise");
         allInButton = new JButton("All-In");
+        resetButton = new JButton("Reset");
 
         foldButton.addActionListener(new ActionListener() {
             @Override
@@ -93,6 +93,13 @@ public class BettingRoundGUI extends JFrame {
                 updateCurrentPlayer();
             }
         });
+        
+        resetButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        });
 
         betPanel.add(new JLabel("Bet Amount:"));
         betPanel.add(betField);
@@ -100,11 +107,18 @@ public class BettingRoundGUI extends JFrame {
         betPanel.add(callCheckButton);
         betPanel.add(raiseButton);
         betPanel.add(allInButton);
+        betPanel.add(resetButton);
         add(betPanel, BorderLayout.SOUTH);
 
+        setPreferredSize(new Dimension(600, 600));
         pack();
+        setLocationRelativeTo(null);
 
         gameLogic.showCurrentPlayerTurn();
+    }
+    
+    public void reset() {
+        dispose();
     }
     
     public void showError(String message) {
