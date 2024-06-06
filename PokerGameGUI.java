@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class PokerGameGUI extends JFrame {
+
     private GameLogic gameLogic;
     private JTextArea displayArea;
     private JTextField nameField;
@@ -25,7 +26,6 @@ public class PokerGameGUI extends JFrame {
 
     public PokerGameGUI() {
         gameLogic = new GameLogic();
-
         setTitle("Poker Game");
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -43,7 +43,7 @@ public class PokerGameGUI extends JFrame {
         inputPanel.add(new JLabel("Player Name:"));
         nameField = new JTextField();
         inputPanel.add(nameField);
-        inputPanel.add(new JLabel("Initial Wallet:"));
+        inputPanel.add(new JLabel("Wallet:"));
         walletField = new JTextField();
         inputPanel.add(walletField);
         addButton = new JButton("Add Player");
@@ -88,6 +88,7 @@ public class PokerGameGUI extends JFrame {
     }
 
     private void loadPlayers() {
+        listModel.clear();
         List<PlayerWithWallet> players = gameLogic.getAllPlayers();
         for (PlayerWithWallet player : players) {
             listModel.addElement(player.getName() + " - Wallet: $" + player.getWallet());
@@ -95,10 +96,15 @@ public class PokerGameGUI extends JFrame {
     }
 
     private void addPlayer() {
-        String playerName = nameField.getText();
-        String walletText = walletField.getText();
+        String playerName = nameField.getText().trim();
+        String walletText = walletField.getText().trim();
 
-        if (listModel.contains(playerName)) {
+        if (playerName.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Player name is required.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (listModel.contains(playerName + " - Wallet: $" + walletText)) {
             JOptionPane.showMessageDialog(this, "Player name already exists.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -115,6 +121,7 @@ public class PokerGameGUI extends JFrame {
         }
     }
 
+
     private void alterPlayer() {
         String selectedValue = playerList.getSelectedValue();
         if (selectedValue == null) {
@@ -123,7 +130,7 @@ public class PokerGameGUI extends JFrame {
         }
 
         String playerName = selectedValue.split(" - ")[0];
-        String newWalletText = walletField.getText();
+        String newWalletText = walletField.getText().trim();
         try {
             int newWallet = Integer.parseInt(newWalletText);
             gameLogic.updatePlayerWallet(playerName, newWallet);
@@ -166,12 +173,10 @@ public class PokerGameGUI extends JFrame {
         for (PlayerWithWallet player : gameLogic.getPlayers()) {
             displayArea.append("Name: " + player.getName() + ", Wallet: " + player.getWallet() + "\n");
         }
-        gameLogic.BlindSetup(); // Start the betting round
+        gameLogic.BlindSetup(this); // Start the betting round
     }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new PokerGameGUI().setVisible(true);
-        });
+    
+    public void refreshPlayerList() {
+        loadPlayers();
     }
 }
