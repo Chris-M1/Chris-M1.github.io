@@ -1,27 +1,47 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package game;
 
 /**
  *
- * @author chris
+ * @author dexter
  */
-class Blind {
+class Blind 
+{
     private final int smallBlindAmount;
     private final int bigBlindAmount;
 
-    public Blind(int smallBlindAmount, int bigBlindAmount) {
+    
+    /**
+    * Constructs a Blind object with specified small blind and big blind amounts.
+    * 
+    * @param smallBlindAmount the amount of the small blind
+    * @param bigBlindAmount the amount of the big blind
+    */
+    public Blind(int smallBlindAmount, int bigBlindAmount)
+    {
         this.smallBlindAmount = smallBlindAmount;
         this.bigBlindAmount = bigBlindAmount;
     }
-
-    public int getSmallBlind() {
+    
+    /**
+    * Gets the amount of the small blind.
+    * 
+    * @return the amount of the small blind
+    */
+    public int getSmallBlind()
+    {
         return smallBlindAmount;
     }
+    
+    
+    /**
+    * Gets the amount of the big blind.
+    * 
+    * @return the amount of the big blind
+    */
 
-    public int getBigBlind() {
+    public int getBigBlind() 
+    {
         return bigBlindAmount;
     }
 }

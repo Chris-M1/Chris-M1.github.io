@@ -1,12 +1,9 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package game;
 
 /**
  *
- * @author chris
+ * @author dexter
  */
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,15 +13,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.math.BigDecimal;
 
-public class PlayerLoader {
-    public List<PlayerWithWallet> loadPlayersWithWallet() {
+/**
+ * Class responsible for loading players with wallet information from the database.
+ */
+public class PlayerLoader
+{
+    /**
+     * Loads players with wallet information from the database.
+     * 
+     * @return A list of players with wallet information.
+     */
+    public List<PlayerWithWallet> loadPlayersWithWallet() 
+    {
         List<PlayerWithWallet> players = new ArrayList<>();
         String sql = "SELECT * FROM Player";
 
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
-
+            
+             // Iterate through the result set and create PlayerWithWallet objects
             while (rs.next()) {
                 int id = rs.getInt("id");
                 String name = rs.getString("name");
