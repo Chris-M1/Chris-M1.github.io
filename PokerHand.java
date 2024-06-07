@@ -1,10 +1,14 @@
-
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package game;
 
 /**
  *
- * @author dexter
+ * @author chris
  */
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,60 +29,27 @@ public class PokerHand {
     
     private HandRank rank;
     private List<String> cards; 
-    
-    
-    /**
-    * Constructs a PokerHand object with the specified hand rank and cards.
-    *
-    * @param rank  The rank of the hand.
-    * @param cards The list of cards comprising the hand.
-    */
-    public PokerHand(HandRank rank, List<String> cards)
-    {
+
+    public PokerHand(HandRank rank, List<String> cards) {
         this.rank = rank;
         this.cards = cards;
     }
     
-    
-    /**
-    * Retrieves the rank of the poker hand.
-    *
-    * @return The rank of the hand.
-    */
-    public HandRank getRank()
-    {
+    public HandRank getRank() {
         return rank;
     }
-    
-    /**
-    * Retrieves the list of cards in the poker hand.
-    *
-    * @return The list of cards.
-    */
-    public List<String> getCards() 
-    {
+
+    public List<String> getCards() {
         return cards;
     }
     
-    /**
-    * Retrieves the integer values of the cards in the poker hand.
-    *
-    * @return The list of integer values representing the cards.
-    */
-    public List<Integer> getCardValues()
-    {
+    public List<Integer> getCardValues() {
         return cards.stream()
                 .map(card -> PokerHandEvaluator.getCardValue(card))
                 .collect(Collectors.toList());
     }
-    
-    /**
-    * Retrieves a map containing the counts of each card value that appears more than once in the poker hand.
-    *
-    * @return A map where the keys represent card values and the values represent the count of occurrences.
-    */
-    public Map<Integer, Long> getMultiples() 
-    {
+
+    public Map<Integer, Long> getMultiples() {
         Map<Integer, Long> frequencyMap = this.cards.stream()
                 .collect(Collectors.groupingBy(PokerHandEvaluator::getCardValue, Collectors.counting()));
         return frequencyMap.entrySet().stream()
@@ -86,26 +57,13 @@ public class PokerHand {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
     
-    /**
-    * Retrieves a list of card values representing the ranks of cards that appear more than once in the poker hand.
-    * The list is sorted in descending order of rank.
-    *
-    * @return A list of card values representing the ranks of cards that appear more than once.
-    */
-     public List<Integer> getMultipleRanks()
-     {
+     public List<Integer> getMultipleRanks() {
         return getMultiples().entrySet().stream()
                 .map(Map.Entry::getKey)
                 .sorted(Collections.reverseOrder())
                 .collect(Collectors.toList());
     }
      
-     /**
-     * Retrieves a list of card values representing the kickers (cards that are not part of multiples)
-     * in the poker hand. The list is sorted in descending order of card value.
-     *
-     * @return A list of card values representing the kickers in the poker hand.
-     */
      public List<Integer> gKickers() {
         Map<Integer, Long> frequencyMap = this.cards.stream()
                 .collect(Collectors.groupingBy(PokerHandEvaluator::getCardValue, Collectors.counting()));
@@ -128,6 +86,9 @@ public String toString() {
     } else {
         return "No cards";
     }
-}   
+}
+
+
+     
 }
 
