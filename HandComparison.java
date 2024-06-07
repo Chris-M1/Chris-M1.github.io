@@ -1,4 +1,7 @@
-
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package game;
 
 /**
@@ -12,8 +15,7 @@ import java.util.Collections;
 /**
  * HandComparison provides functionality to compare two poker hands.
  */
-public class HandComparison 
-{
+public class HandComparison {
 
     public static int compareHands(PokerHand hand1, PokerHand hand2) {
         // First, compare the hand ranks
@@ -73,42 +75,19 @@ public class HandComparison
         }
         return 0;
     }
-    
-    /**
-    * Compares two lists of kickers to determine the winner.
-    * 
-    * @param firstKickers  The kickers of the first hand.
-    * @param secondKickers The kickers of the second hand.
-    * @return A value indicating the comparison result.
-    */
-    private static int compareKickers(List<Integer> firstKickers, List<Integer> secondKickers)
-    {
-        // Delegate the comparison to the method for comparing high cards
+
+    private static int compareKickers(List<Integer> firstKickers, List<Integer> secondKickers) {
         return compareHighCards(firstKickers, secondKickers);
     }
-    
-    /**
-    * Compares two lists of high cards to determine the winner.
-    * 
-    * @param firstCards The high cards of the first hand.
-    * @param secondCards The high cards of the second hand.
-    * @return A value indicating the comparison result.
-    */
-    public static int compareHighCards(List<Integer> firstCards, List<Integer> secondCards) 
-    {
-        // Determine the limit for iteration based on the size of the smaller list
+
+    public static int compareHighCards(List<Integer> firstCards, List<Integer> secondCards) {
         int limit = firstCards.size() < secondCards.size() ? firstCards.size() : secondCards.size();
-        // Iterate through the lists and compare corresponding cards
-        for (int i = 0; i < limit; i++) 
-        {
+        for (int i = 0; i < limit; i++) {
             int comparisonResult = firstCards.get(i).compareTo(secondCards.get(i));
-            // If the comparison result is not zero, return it
-            if (comparisonResult != 0)
-            {
+            if (comparisonResult != 0) {
                 return comparisonResult;
             }
         }
-        // If all cards are equal, return 0
         return 0;
     }
 
