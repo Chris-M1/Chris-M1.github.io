@@ -35,7 +35,7 @@ public class BettingRoundGUI extends JFrame {
         this.gameLogic = gameLogic;
         this.pokerGameGUI = pokerGameGUI;
 
-        setTitle("Poker Betting Round");
+        setTitle("Poker Betting Round\n");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 

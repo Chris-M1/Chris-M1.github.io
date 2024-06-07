@@ -27,7 +27,7 @@ public class PokerGameGUI extends JFrame {
     public PokerGameGUI() {
         gameLogic = new GameLogic();
         setTitle("Poker Game");
-        setSize(600, 400);
+        setSize(700, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
@@ -85,6 +85,48 @@ public class PokerGameGUI extends JFrame {
         });
 
         loadPlayers();
+        welcomeHelpMessage();
+    }
+    
+    private void welcomeHelpMessage() {
+        displayArea.append("  Welcome to our POKER GAME!\n\n"
+                + "  You can ADD players and set their initial wallet \n  amounts in the box below and pressing Add.\n\n"
+                + "  You can ALTER a players wallet by clicking their names,\n and inputting their new wallet amount in the box below.\n\n"
+                + "  You can DELETE a player by selecting their name and clicking the Delete button.\n\n"
+                + "  You can SELECT two or more players by holding 'CTRL' AND CLICKING \n  the players you want.\n\n"
+                + "  Once ready to play, select two or more players and click 'Start Game' to begin :)\n\n");
+    }
+    
+    public JTextField getNameField() {
+        return nameField;
+    }
+
+    public JTextField getWalletField() {
+        return walletField;
+    }
+
+    public JButton getAddButton() {
+        return addButton;
+    }
+
+    public JButton getStartButton() {
+        return startButton;
+    }
+
+    public JButton getAlterButton() {
+        return alterButton;
+    }
+
+    public JButton getDeleteButton() {
+        return deleteButton;
+    }
+
+    public JList<String> getPlayerList() {
+        return playerList;
+    }
+
+    public DefaultListModel<String> getListModel() {
+        return listModel;
     }
 
     private void loadPlayers() {
@@ -166,11 +208,13 @@ public class PokerGameGUI extends JFrame {
         List<PlayerWithWallet> players = selectedPlayers.stream()
                 .map(player -> gameLogic.getPlayerByName(player.split(" - ")[0]))
                 .collect(Collectors.toList());
-
+        
+        displayArea.setText("");
+        welcomeHelpMessage();
         gameLogic.setPlayers(players);
-        displayArea.append("Game started with players:\n");
+        displayArea.append("  Game started with players:\n\n");
         for (PlayerWithWallet player : gameLogic.getPlayers()) {
-            displayArea.append("Name: " + player.getName() + ", Wallet: " + player.getWallet() + "\n");
+            displayArea.append("  Name: " + player.getName() + " | Wallet: " + player.getWallet() + "\n");
         }
         gameLogic.initializeGame();
         gameLogic.BlindSetup(this); // Start the betting round
