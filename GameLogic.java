@@ -44,12 +44,20 @@ public class GameLogic {
         this.pokerGameGUI = pokerGameGUI;
     }
 
+    public void setBettingRoundGUI(BettingRoundGUI bettingRoundGUI) {
+        this.bettingRoundGUI = bettingRoundGUI;
+    }
+
     public int getHighestBet() {
         return this.highestBet;
     }
 
     public Blind getBlinds() {
         return this.blinds;
+    }
+
+    public int getCurrentPlayerIndex() {
+        return this.currentPlayerIndex;
     }
 
     private void updateGUI() {
@@ -85,8 +93,6 @@ public class GameLogic {
         if (blindsGUI.getSmallBlind() > 0 && blindsGUI.getBigBlind() > 0) {
             this.blinds = new Blind(blindsGUI.getSmallBlind(), blindsGUI.getBigBlind());
             deductBlinds(blinds.getSmallBlind(), blinds.getBigBlind());
-            dealCardsToPlayers();
-            dealCommunityCards();
             bettingRoundGUI = new BettingRoundGUI(this, pokerGameGUI);
             bettingRoundGUI.setVisible(true);
         } else {
@@ -103,14 +109,14 @@ public class GameLogic {
         updateGUI();
     }
 
-    private void dealCardsToPlayers() {
+    public void dealCardsToPlayers() {
         for (PlayerWithWallet player : players) {
             List<String> playerCards = deck.dealCards(2);
             player.setCards(playerCards);
         }
     }
 
-    private void dealCommunityCards() {
+    public void dealCommunityCards() {
         communityCards.addAll(deck.dealCards(3)); // Deal the first three community cards (Flop)
     }
 
@@ -160,7 +166,7 @@ public class GameLogic {
     }
 
     public List<PlayerWithWallet> getPlayers() {
-        return players;
+        return this.players;
     }
 
     public Player getPlayer(int id) {
@@ -173,10 +179,6 @@ public class GameLogic {
 
     public PlayerWithWallet getCurrentPlayer() {
         return players.get(currentPlayerIndex);
-    }
-
-    private List<PlayerWithWallet> loadPlayerWallets() {
-        return playerLoader.loadPlayersWithWallet();
     }
 
     private PlayerWithWallet loadSinglePlayer(String playerName) throws SQLException {
@@ -205,13 +207,13 @@ public class GameLogic {
 
         // Deduct small blind
         int aSB = smallBlindPlayer.getWallet() >= sBlind ? sBlind : smallBlindPlayer.getWallet(); // Actual small blind
-        smallBlindPlayer.subtractFromWallet(aSB);
+        smallBlindPlayer.deductFromWallet(aSB);
         potAmount += aSB;
         System.out.println(smallBlindPlayer.getName() + " posts small blind of $" + aSB);
 
         // Deduct big blind
         int aBB = bigBlindPlayer.getWallet() >= bBlind ? bBlind : bigBlindPlayer.getWallet(); // Actual big blind
-        bigBlindPlayer.subtractFromWallet(aBB);
+        bigBlindPlayer.deductFromWallet(aBB);
         potAmount += aBB;
         System.out.println(bigBlindPlayer.getName() + " posts big blind of $" + aBB);
 
@@ -249,7 +251,7 @@ public class GameLogic {
         PlayerWithWallet currentPlayer = players.get(currentPlayerIndex);
         int callAmt = highestBet - currentPlayer.getCurrentBet();
         if (currentPlayer.getWallet() >= callAmt) {
-            currentPlayer.subtractFromWallet(callAmt);
+            currentPlayer.deductFromWallet(callAmt);
             potAmount += callAmt;
             currentPlayer.setCurrentBet(highestBet);
             System.out.println(currentPlayer.getName() + " calls and adds $" + callAmt + " to the pot.");
@@ -263,23 +265,23 @@ public class GameLogic {
     public void raise(int amount) {
         PlayerWithWallet currentPlayer = players.get(currentPlayerIndex);
         int raiseAmt = amount - currentPlayer.getCurrentBet();
-            if (currentPlayer.getWallet() >= raiseAmt) {
-                currentPlayer.subtractFromWallet(raiseAmt);
-                potAmount += raiseAmt;
-                currentPlayer.setCurrentBet(amount);
-                highestBet = amount;
-                System.out.println(currentPlayer.getName() + " raises to $" + amount);
-                moveToNextPlayer();
-            } else {
-                System.out.println("Not enough funds to raise. Consider going all-in or folding.");
-                bettingRoundGUI.showError("Not enough funds to raise. Consider going all-in or folding.");
-            }
+        if (currentPlayer.getWallet() >= raiseAmt) {
+            currentPlayer.deductFromWallet(raiseAmt);
+            potAmount += raiseAmt;
+            currentPlayer.setCurrentBet(amount);
+            highestBet = amount;
+            System.out.println(currentPlayer.getName() + " raises to $" + amount);
+            moveToNextPlayer();
+        } else {
+            System.out.println("Not enough funds to raise. Consider going all-in or folding.");
+            bettingRoundGUI.showError("Not enough funds to raise. Consider going all-in or folding.");
+        }
     }
 
     public void allIn() {
         PlayerWithWallet currentPlayer = players.get(currentPlayerIndex);
         int allInAmt = currentPlayer.getWallet();
-        currentPlayer.subtractFromWallet(allInAmt);
+        currentPlayer.deductFromWallet(allInAmt);
         potAmount += allInAmt;
         currentPlayer.setCurrentBet(currentPlayer.getCurrentBet() + allInAmt);
         System.out.println(currentPlayer.getName() + " goes all-in with $" + allInAmt);
@@ -299,6 +301,7 @@ public class GameLogic {
             // All players have completed their turn, proceed to the next round
             progressToNextRound();
         } else {
+
             showCurrentPlayerTurn();
         }
         checkForEndOfRound();
@@ -321,7 +324,7 @@ public class GameLogic {
         return players.stream().allMatch(p -> p.hasFolded() || p.isAllIn());
     }
 
-    private void concludeRound() {
+    public void concludeRound() {
         for (PlayerWithWallet player : players) {
             if (!player.hasFolded()) {
                 String winnerMessage = String.format("%s wins by default with $%d", player.getName(), potAmount);
@@ -342,8 +345,11 @@ public class GameLogic {
         switch (roundNumber) {
             case 1 -> {
                 // Post-Flop round
+                dealCardsToPlayers();
+                dealCommunityCards();
                 checkForEndOfRound();
                 displayTableInfo();
+
                 // No additional cards, just proceed to the next round of betting
             }
             case 2 -> {
@@ -369,9 +375,22 @@ public class GameLogic {
         showCurrentPlayerTurn();
     }
 
-    public void displayTableInfo() {
+    private String currentRound() {
+        switch (roundNumber) {
+            case 1:
+                return "POST-FLOP ROUND";
+            case 2:
+                return "TURN ROUND";
+            case 3:
+                return "RIVER ROUND";
 
-        StringBuilder info = new StringBuilder("=!@ Table Information @!=\nPlayers at the table:\n");
+            default:
+                return "PRE-FLOP ROUND";
+        }
+    }
+
+    public void displayTableInfo() {
+        StringBuilder info = new StringBuilder(currentRound() + "\n\n=!@ Table Information @!=\nPlayers at the table:\n\n");
         for (PlayerWithWallet player : players) {
             if (player.hasFolded()) {
                 info.append(player.getName()).append(": Folded\n");
@@ -385,7 +404,7 @@ public class GameLogic {
             }
         }
         String communityCardsDisplay = String.join(", ", communityCards);
-        info.append("Community Cards: ").append(communityCardsDisplay).append("\n");
+        info.append("\nCommunity Cards: ").append(communityCardsDisplay).append("\n");
         info.append("Current Pot: $").append(potAmount).append("\n");
 
         if (bettingRoundGUI != null) {
@@ -409,7 +428,7 @@ public class GameLogic {
         }
     }
 
-    private void determineWinner() {
+    public void determineWinner() {
 
         List<PlayerWithWallet> activePlayers = players.stream()
                 .filter(p -> !p.hasFolded())

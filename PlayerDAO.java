@@ -30,13 +30,34 @@ public class PlayerDAO {
         }
     }
 
-    public Player getPlayer(int id) throws SQLException {
+   public Player getPlayer(int id) throws SQLException {
         String sql = "SELECT * FROM Player WHERE id = ?";
         try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new Player(rs.getInt("id"), rs.getString("name"), rs.getInt("wallet"));
+                    return new PlayerWithWallet(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getInt("wallet")
+                    );
+                }
+            }
+        }
+        return null;
+    }
+   
+   public Player getPlayerByName(String name) throws SQLException {
+        String sql = "SELECT * FROM Player WHERE name = ?";
+        try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, name);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new PlayerWithWallet(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getInt("wallet")
+                    );
                 }
             }
         }

@@ -23,6 +23,7 @@ public class PlayerWithWallet extends Player {
 
     public PlayerWithWallet(String name, int wallet) {
         super(name, wallet);
+        this.wallet = wallet;
         this.cards = new ArrayList<>();
     }
 
@@ -65,10 +66,6 @@ public class PlayerWithWallet extends Player {
 
     public void addToWallet(int amount) {
         this.wallet += amount;
-    }
-
-    public void subtractFromWallet(int amount) {
-        this.wallet -= amount;
     }
 
     public void updatePlayerWalletDB() {
