@@ -1,7 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package game;
 
 /**
@@ -15,9 +12,15 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlayerDAO {
-
-    public void addPlayer(PlayerWithWallet player) {
+public class PlayerDAO 
+{
+    /**
+    * Adds a player to the database.
+    * 
+    * @param player The player to add.
+    */
+    public void addPlayer(PlayerWithWallet player) 
+    {
         String sql = "INSERT INTO Player (name, wallet) VALUES (?, ?)";
         try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -29,24 +32,27 @@ public class PlayerDAO {
             e.printStackTrace();
         }
     }
-
-   public Player getPlayer(int id) throws SQLException {
+    
+    /**
+    * Retrieves a player from the database by ID.
+    * 
+    * @param id The ID of the player to retrieve.
+    * @return The player retrieved from the database, or null if not found.
+    * @throws SQLException If an SQL exception occurs.
+    */
+    public Player getPlayer(int id) throws SQLException {
         String sql = "SELECT * FROM Player WHERE id = ?";
         try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new PlayerWithWallet(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getInt("wallet")
-                    );
+                    return new Player(rs.getInt("id"), rs.getString("name"), rs.getInt("wallet"));
                 }
             }
         }
         return null;
     }
-   
+    
    public Player getPlayerByName(String name) throws SQLException {
         String sql = "SELECT * FROM Player WHERE name = ?";
         try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -62,8 +68,14 @@ public class PlayerDAO {
             }
         }
         return null;
-    }
-
+    } 
+        
+        
+    /**
+    * Updates the wallet amount of a player in the database.
+    * @param playerId The ID of the player whose wallet is to be updated.
+    * @param newWalletAmount The new wallet amount to be set.
+    */
     public void updateWallet(int playerId, int newWalletAmount) {
         String sql = "UPDATE Player SET wallet = ? WHERE id = ?";
         try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -76,7 +88,12 @@ public class PlayerDAO {
             e.printStackTrace();
         }
     }
-
+    
+    /**
+    * Deletes a player from the database by name.
+    * 
+    * @param name The name of the player to be deleted.
+    */
     public void deletePlayer(String name) {
         String sql = "DELETE FROM Player WHERE name = ?";
         try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -88,7 +105,12 @@ public class PlayerDAO {
             e.printStackTrace();
         }
     }
-
+    
+    /**
+    * Loads players with their wallets from the database.
+    * 
+    * @return A list of players with their wallets.
+    */
     public List<PlayerWithWallet> loadPlayersWithWallet() {
         List<PlayerWithWallet> players = new ArrayList<>();
         String sql = "SELECT * FROM Player";

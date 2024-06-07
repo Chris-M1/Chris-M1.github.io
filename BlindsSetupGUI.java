@@ -1,7 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package game;
 
 /**
@@ -14,21 +11,32 @@ public class BlindsSetupGUI {
 
     private int smallBlind;
     private int bigBlind;
-
-    public BlindsSetupGUI() {
-        while (true) { // Loop until valid input is provided
+    
+    /**
+    * Constructs a GUI for setting up blinds.
+    */
+    public BlindsSetupGUI()
+    {
+        while (true)
+        { // Create text fields for entering small blind and big blind amounts
             JTextField smallBlindField = new JTextField(5);
             JTextField bigBlindField = new JTextField(5);
+            
+            // Create a panel to hold the dialog components
             JPanel dialogPanel = new JPanel();
-
+            
+            // Add labels and text fields for small blind and big blind to the dialog panel
             dialogPanel.add(new JLabel("Small Blind:"));
             dialogPanel.add(smallBlindField);
             dialogPanel.add(Box.createHorizontalStrut(15)); // a spacer
             dialogPanel.add(new JLabel("Big Blind:"));
             dialogPanel.add(bigBlindField);
-
+            
+            // Display a dialog to prompt the user to enter blinds
             int result = JOptionPane.showConfirmDialog(null, dialogPanel,
                     "Please Enter Blinds", JOptionPane.OK_CANCEL_OPTION);
+            
+            // If the user clicks OK, parse the entered values and store them as blinds
             if (result == JOptionPane.OK_OPTION) {
                 try {
                     smallBlind = Integer.parseInt(smallBlindField.getText());
@@ -50,12 +58,24 @@ public class BlindsSetupGUI {
             }
         }
     }
-
-    public int getSmallBlind() {
+    
+    /**
+    * Gets the amount of the small blind.
+    * 
+    * @return the amount of the small blind
+    */
+    public int getSmallBlind()
+    {
         return smallBlind;
     }
 
-    public int getBigBlind() {
+    /**
+    * Gets the amount of the big blind.
+    * 
+    * @return the amount of the big blind
+    */
+    public int getBigBlind() 
+    {
         return bigBlind;
     }
 }
